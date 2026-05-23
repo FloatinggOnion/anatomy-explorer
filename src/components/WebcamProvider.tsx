@@ -13,35 +13,31 @@ export function WebcamProvider({ children }: WebcamProviderProps) {
 
   return (
     <WebcamRefContext.Provider value={videoRef}>
-      <div className="relative w-full h-screen overflow-hidden">
-        {/* z:0 — Video background or fallback checkerboard */}
+      {/* z:0 — Video background, fixed to viewport */}
+      {!isPermissionDenied ? (
         <video
           ref={videoRef}
-          className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${
-            isPermissionDenied ? 'hidden' : ''
-          }`}
+          style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', objectFit: 'cover', zIndex: 0 }}
           playsInline
           muted
         />
+      ) : (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 0,
+            backgroundImage: `linear-gradient(45deg, #e5e7eb 25%, #f3f4f6 25%, #f3f4f6 50%, #e5e7eb 50%, #e5e7eb 75%, #f3f4f6 75%, #f3f4f6)`,
+            backgroundSize: '40px 40px',
+          }}
+        />
+      )}
 
-        {/* Checkerboard fallback when permission is denied */}
-        {isPermissionDenied && (
-          <div
-            className="absolute top-0 left-0 w-full h-full z-0"
-            style={{
-              backgroundImage: `linear-gradient(45deg, #e5e7eb 25%, #f3f4f6 25%, #f3f4f6 50%, #e5e7eb 50%, #e5e7eb 75%, #f3f4f6 75%, #f3f4f6)`,
-              backgroundSize: '40px 40px',
-            }}
-          />
-        )}
+      {/* Pre-permission screen overlay (z:20) */}
+      <PrePermissionScreen onStartCamera={startCamera} />
 
-        {/* Pre-permission screen overlay */}
-        <PrePermissionScreen onStartCamera={startCamera} />
-
-        {/* z:1 placeholder for Canvas (will be filled by App.tsx) */}
-        {/* z:10 UI overlays */}
-        {children}
-      </div>
+      {/* Canvas and UI children render above */}
+      {children}
     </WebcamRefContext.Provider>
   );
 }

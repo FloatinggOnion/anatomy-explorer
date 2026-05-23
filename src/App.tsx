@@ -6,8 +6,8 @@ export default function App() {
     <WebcamProvider>
       {/* z:0 — Video background (handled by WebcamProvider) */}
 
-      {/* z:1 — R3F Canvas with 3D skeleton model */}
-      <div className="absolute top-0 left-0 w-full h-full z-1 pointer-events-auto">
+      {/* z:1 — R3F Canvas with 3D skeleton model, fixed to viewport so it always overlays */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'auto' }}>
         <Canvas />
       </div>
 

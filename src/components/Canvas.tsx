@@ -14,6 +14,7 @@ function FallbackPlaceholder() {
 export function Canvas() {
   return (
     <R3FCanvas
+      gl={{ alpha: true, antialias: true }}
       style={{ background: 'transparent' }}
       camera={{ position: [0, 0, 3], fov: 75 }}
       dpr={window.devicePixelRatio}
