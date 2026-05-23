@@ -1,0 +1,33 @@
+{
+  "name": "ar-project",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "@react-three/fiber": "9.0.0",
+    "@react-three/drei": "9.0.0",
+    "three": "0.170.0",
+    "zustand": "5.0.0",
+    "tailwindcss": "4.0.0",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/node": "^22.0.0",
+    "@vitejs/plugin-react": "^4.6.0",
+    "typescript": "^5.6.2",
+    "vite": "^6.0.0",
+    "@tauri-apps/cli": "^2"
+  }
+}
