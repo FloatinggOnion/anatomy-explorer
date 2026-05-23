@@ -1,7 +1,7 @@
 # Requirements: AR Anatomy Explorer
 
 **Defined:** 2026-05-23
-**Core Value:** Users can see, rotate, and inspect 3D anatomy models using their hands in front of a webcam — making anatomy tangible without physical specimens.
+**Core Value:** Users can see, rotate, and inspect 3D anatomy models using their hands in front of a webcam -- making anatomy tangible without physical specimens.
 
 ## v1 Requirements
 
@@ -57,11 +57,11 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Feature | Reason |
 |---------|--------|
-| iOS/mobile native app | Pivot away from Unity/ARKit — web-first approach |
+| iOS/mobile native app | Pivot away from Unity/ARKit -- web-first approach |
 | Unity engine | Rebuilding on web stack for accessibility and speed |
 | User accounts/authentication | Not needed for client-side anatomy viewer |
-| Backend/server | Client-side only — no data persistence needed |
-| AR headset support | Desktop/browser focus — no Meta Quest or HoloLens |
+| Backend/server | Client-side only -- no data persistence needed |
+| AR headset support | Desktop/browser focus -- no Meta Quest or HoloLens |
 | Pathology/disease content | Educational anatomy only, not clinical |
 | Video recording of sessions | Complexity vs value for 1-week timeline |
 
@@ -71,27 +71,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CAM-01 | — | Pending |
-| CAM-02 | — | Pending |
-| CAM-03 | — | Pending |
-| GEST-01 | — | Pending |
-| GEST-02 | — | Pending |
-| GEST-03 | — | Pending |
-| GEST-04 | — | Pending |
-| MDL-01 | — | Pending |
-| MDL-02 | — | Pending |
-| MDL-03 | — | Pending |
-| MDL-04 | — | Pending |
-| MDL-05 | — | Pending |
-| PLAT-01 | — | Pending |
-| PLAT-02 | — | Pending |
-| PLAT-03 | — | Pending |
+| CAM-01 | Phase 1 | Pending |
+| CAM-02 | Phase 1 | Pending |
+| CAM-03 | Phase 2 | Pending |
+| GEST-01 | Phase 2 | Pending |
+| GEST-02 | Phase 2 | Pending |
+| GEST-03 | Phase 4 | Pending |
+| GEST-04 | Phase 4 | Pending |
+| MDL-01 | Phase 2 | Pending |
+| MDL-02 | Phase 3 | Pending |
+| MDL-03 | Phase 3 | Pending |
+| MDL-04 | Phase 3 | Pending |
+| MDL-05 | Phase 3 | Pending |
+| PLAT-01 | Phase 1 | Pending |
+| PLAT-02 | Phase 1 | Pending |
+| PLAT-03 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-05-23*
-*Last updated: 2026-05-23 after initial definition*
+*Last updated: 2026-05-23 after roadmap creation*
