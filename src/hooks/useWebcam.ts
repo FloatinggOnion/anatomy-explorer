@@ -1,63 +1,58 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store/appState';
+
+type SavedPermission = 'granted' | 'denied';
 
 export function useWebcam() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const permissionState = useAppStore((state) => state.permissionState);
   const setPermissionState = useAppStore((state) => state.setPermissionState);
-  const setVideoRef = useAppStore((state) => state.setVideoRef);
 
-  // Restore permission state from localStorage on mount
-  useEffect(() => {
-    const savedPermission = localStorage.getItem('webcam_permission') as any;
-    if (savedPermission && ['granted', 'denied'].includes(savedPermission)) {
-      setPermissionState(savedPermission);
-      if (savedPermission === 'granted') {
-        startCamera();
-      }
-    } else {
-      setPermissionState('unknown');
+  const stopCamera = useCallback(() => {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
     }
   }, []);
 
-  // Set video ref in store
-  useEffect(() => {
-    setVideoRef(videoRef);
-  }, [setVideoRef]);
-
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     try {
       setPermissionState('pending');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
       });
-
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
         setPermissionState('granted');
         localStorage.setItem('webcam_permission', 'granted');
       }
-    } catch (error: any) {
-      console.error('Camera access denied:', error);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Camera error';
+      if (import.meta.env.DEV) console.error('Camera access denied:', message);
       setPermissionState('denied');
       localStorage.setItem('webcam_permission', 'denied');
     }
-  };
+  }, [setPermissionState]);
 
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
+  // Restore permission state on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('webcam_permission');
+    const validStates: SavedPermission[] = ['granted', 'denied'];
+    if (saved && (validStates as string[]).includes(saved)) {
+      setPermissionState(saved as SavedPermission);
+      if (saved === 'granted') startCamera();
+    } else {
+      setPermissionState('unknown');
     }
-  };
+  }, [startCamera, setPermissionState]);
 
-  return {
-    videoRef,
-    permissionState,
-    startCamera,
-    stopCamera,
-  };
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopCamera();
+  }, [stopCamera]);
+
+  return { videoRef, permissionState, startCamera, stopCamera };
 }
