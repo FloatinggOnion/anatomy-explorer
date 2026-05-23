@@ -34,17 +34,6 @@
       }
     }
   },
-  "tauri": {
-    "allowlist": {
-      "window": {
-        "all": true
-      },
-      "shell": {
-        "open": true,
-        "execute": false
-      }
-    }
-  },
   "bundle": {
     "active": true,
     "targets": "all",
