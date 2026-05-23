@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store/appState';
 
-type SavedPermission = 'granted' | 'denied';
 
 export function useWebcam() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -32,18 +31,20 @@ export function useWebcam() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Camera error';
       if (import.meta.env.DEV) console.error('Camera access denied:', message);
+      // Remove any saved grant so the next reload shows the pre-permission screen
+      // instead of permanently showing the checkerboard with no retry path.
+      localStorage.removeItem('webcam_permission');
       setPermissionState('denied');
-      localStorage.setItem('webcam_permission', 'denied');
     }
   }, [setPermissionState]);
 
-  // Restore permission state on mount
+  // Restore permission state on mount — only auto-start if previously granted.
+  // Never restore 'denied' from storage: always show the pre-permission screen
+  // so the user has a path to retry (e.g. after revoking and re-granting in browser settings).
   useEffect(() => {
     const saved = localStorage.getItem('webcam_permission');
-    const validStates: SavedPermission[] = ['granted', 'denied'];
-    if (saved && (validStates as string[]).includes(saved)) {
-      setPermissionState(saved as SavedPermission);
-      if (saved === 'granted') startCamera();
+    if (saved === 'granted') {
+      startCamera();
     } else {
       setPermissionState('unknown');
     }
