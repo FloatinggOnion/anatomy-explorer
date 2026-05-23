@@ -13,12 +13,36 @@
     "windows": [
       {
         "title": "AR Anatomy Explorer",
-        "width": 1024,
-        "height": 768
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "transparent": false
       }
     ],
     "security": {
-      "csp": "default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:"
+      "csp": {
+        "default-src": ["'self'", "data:", "blob:"],
+        "script-src": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "data:", "blob:"],
+        "connect-src": ["'self'", "http://localhost:5173"],
+        "font-src": ["'self'"],
+        "worker-src": ["'self'", "blob:"],
+        "child-src": ["blob:"],
+        "media-src": ["'self'", "blob:"]
+      }
+    }
+  },
+  "tauri": {
+    "allowlist": {
+      "window": {
+        "all": true
+      },
+      "shell": {
+        "open": true,
+        "execute": false
+      }
     }
   },
   "bundle": {
