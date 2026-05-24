@@ -54,11 +54,11 @@ Exceptions:
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 14px | 400 | 1.5 | Toast messages, status indicator text |
-| Label | 12px | 500 | 1.4 | Toolbar button labels, status badge |
+| Label | 12px | 400 | 1.4 | Toolbar button labels, status badge |
 | Heading | 20px | 700 | 1.2 | Spinner overlay message ("Loading model...") |
 | Display | 36px | 700 | 1.1 | Not used in Phase 2 (Phase 1 pre-permission screen only) |
 
-**Constraint:** Maximum 4 sizes, maximum 2 weights in active use per phase. Phase 2 uses 14px/400 and 12px/500 for toolbar and status elements. 20px/700 appears only in the loading spinner overlay.
+**Constraint:** Maximum 4 sizes, maximum 2 weights in active use per phase. Phase 2 active weights are 400 (body, label) and 700 (heading/spinner overlay only). Use `font-normal` for all toolbar labels and status badge text.
 
 ---
 
@@ -70,6 +70,8 @@ Exceptions:
 | Secondary (30%) | `rgba(17, 24, 39, 0.7)` (gray-900 at 70% opacity) | Bottom toolbar bar, semi-transparent to let AR scene show through |
 | Accent (10%) | `#2563EB` (blue-600) | Load Model button, pinch-active landmark dots |
 | Destructive | not applicable | No destructive actions in Phase 2 |
+
+**Primary visual anchor:** the centered anatomy model on the full-screen AR background. All overlays (toolbar, status indicator, toasts) are secondary.
 
 Accent (`#2563EB` blue-600) is reserved for:
 1. "Load Model" primary CTA button
@@ -92,18 +94,18 @@ Semantic colors:
 **Layout:** Horizontal flex row, items centered vertically, 16px horizontal padding, 44px height minimum
 **Background:** `rgba(17, 24, 39, 0.7)` with `backdrop-filter: blur(4px)`
 **Items (left to right):**
-1. "Load Model" button — blue-600 filled, 12px label, 8px x-padding, 44px touch target
+1. "Load Model" button — blue-600 filled, 12px label at weight 400, 8px x-padding, 44px touch target
 2. Separator — 1px vertical divider, gray-700
-3. Landmark toggle button — icon + label "Landmarks ON/OFF", toggles `landmarksVisible` state
+3. Landmark toggle button — icon + label "Landmarks ON/OFF" at weight 400, toggles `landmarksVisible` state
 
 ### Hand Detection Status Indicator
 
 **Location:** Top-right corner, fixed, z-index 10, 8px from edges
 **Layout:** Flex row, 4px gap — colored dot (8px circle) + text label
 **States:**
-- Loading: gray dot + "Loading hand tracking..." at 12px/500
-- No hand: gray-500 dot + "No hand detected" at 12px/500
-- Hand detected: green-500 dot + "Hand detected" at 12px/500
+- Loading: gray dot + "Loading hand tracking..." at 12px/400
+- No hand: gray-500 dot + "No hand detected" at 12px/400
+- Hand detected: green-500 dot + "Hand detected" at 12px/400
 
 ### Landmark Canvas
 
