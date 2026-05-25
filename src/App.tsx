@@ -22,7 +22,7 @@ function AppInner() {
   const gestureCommandRef = useRef<GestureCommand | null>(null);
 
   // useGestureInterpreter must be called inside WebcamProvider so Leva hook is in scope
-  const { interpret } = useGestureInterpreter();
+  const { interpret, pointingNDCRef } = useGestureInterpreter();
 
   // videoRef for reading video dimensions when computing gesture pixel coordinates
   const videoRef = useWebcamRef();
@@ -66,7 +66,7 @@ function AppInner() {
 
       {/* z:2 — R3F Canvas with 3D skeleton/model, fixed to viewport so it always overlays */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 2, pointerEvents: 'auto' }}>
-        <Canvas gestureCommandRef={gestureCommandRef} />
+        <Canvas gestureCommandRef={gestureCommandRef} pointingNDCRef={pointingNDCRef} />
       </div>
 
       {/* z:10 — UI overlays */}
