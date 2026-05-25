@@ -133,6 +133,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
 
       // ── Inspect mode: read once for explode gestures ─────────────────────────────
       const inspectMode = useAppStore.getState().inspectMode;
+      const gestureMode = useAppStore.getState().gestureMode;
 
       // ── Selection raycaster: always active via two methods ───────────────────────
       // 1. Pointing gesture (index up, others curled) — works in any mode
@@ -154,6 +155,88 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       } else {
         pointingNDCRef.current = null;
         smoothNDCRef.current = null;
+      }
+
+      // ── Wave mode branch (D-05 to D-15) ───────────────────────────────────────────
+      if (gestureMode === 'wave') {
+        // D-15: Pointing passthrough — compute pointingNDC but return idle
+        if (isPointing(hand0)) {
+          // Already computed pointingNDCRef above; just return idle to skip all other gestures
+          gestureStateRef.current = { mode: 'idle', pinchOrigin: null };
+          isPinchingRef.current = false;
+          prevMidpointRef.current = null;
+          return { type: 'idle' };
+        }
+
+        // D-11: Two-hand spread zoom
+        if (landmarks.length >= 2 && isSpread(hand0) && isSpread(landmarks[1])) {
+          const distance = dist(hand0[8], landmarks[1][8]);
+          const speed = Math.min(distance * 2, 1.0);
+          gestureStateRef.current = { mode: 'wave-zoom', pinchOrigin: null };
+          isPinchingRef.current = false;
+          if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
+          setGestureActive(true);
+          return { type: 'wave-zoom', direction: 'in', speed };
+        }
+
+        // D-09: Single-hand spread zoom in
+        if (isSpread(hand0)) {
+          const avgDist = (
+            dist(hand0[8], hand0[12]) +
+            dist(hand0[12], hand0[16]) +
+            dist(hand0[16], hand0[20])
+          ) / 3;
+          const speed = Math.min(avgDist * 4, 1.0);
+          gestureStateRef.current = { mode: 'wave-zoom', pinchOrigin: null };
+          isPinchingRef.current = false;
+          if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
+          setGestureActive(true);
+          return { type: 'wave-zoom', direction: 'in', speed };
+        }
+
+        // D-10: Fist zoom out
+        if (isFist(hand0)) {
+          gestureStateRef.current = { mode: 'wave-zoom', pinchOrigin: null };
+          isPinchingRef.current = false;
+          if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
+          setGestureActive(true);
+          return { type: 'wave-zoom', direction: 'out', speed: 0.5 };
+        }
+
+        // D-05 to D-07: Open-hand rotation (trackball via hand center)
+        const handCenter = {
+          x: hand0[9].x * videoWidth,
+          y: hand0[9].y * videoHeight,
+        };
+
+        if (gestureStateRef.current.mode !== 'wave-rotate') {
+          // First frame of wave rotation — store origin and return idle
+          gestureStateRef.current = { mode: 'wave-rotate', pinchOrigin: handCenter };
+          isPinchingRef.current = false;
+          if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
+          setGestureActive(true);
+          return { type: 'idle' };
+        }
+
+        // Subsequent frames — compute delta and apply rotation
+        const origin = gestureStateRef.current.pinchOrigin!;
+        const delta = { x: handCenter.x - origin.x, y: handCenter.y - origin.y };
+        const magnitude = Math.hypot(delta.x, delta.y);
+
+        // Dead zone: swallow micro-jitter (D-19, same threshold as pinch)
+        if (magnitude < DEAD_ZONE_PX) return { type: 'idle' };
+
+        // Trackball: update origin incrementally
+        gestureStateRef.current.pinchOrigin = handCenter;
+        isPinchingRef.current = false;
+
+        return {
+          type: 'rotate',
+          delta: {
+            x: delta.x * rotationSensitivity,
+            y: delta.y * rotationSensitivity,
+          },
+        };
       }
 
       // ── Spread/fist gesture: explode control gated on inspectMode (D-22) ─────────
