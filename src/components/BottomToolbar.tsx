@@ -38,6 +38,16 @@ export function BottomToolbar() {
     return () => clearTimeout(timer);
   }, [isLoading]);
 
+  // Revoke object URL on unmount to prevent memory leak (CR-01)
+  useEffect(() => {
+    return () => {
+      if (prevObjectUrlRef.current) {
+        URL.revokeObjectURL(prevObjectUrlRef.current);
+        prevObjectUrlRef.current = null;
+      }
+    };
+  }, []);
+
   // Auto-dismiss error toast after 5 seconds (D-08)
   useEffect(() => {
     if (!modelLoadError) return;
