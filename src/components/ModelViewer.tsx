@@ -1,9 +1,18 @@
 import React, { useRef, useLayoutEffect, useMemo } from 'react';
-import type { Group } from 'three';
+import type { Group, Object3D } from 'three';
 import { Box3, Vector3 } from 'three';
 import { useGLTF } from '@react-three/drei';
 import { useAppStore } from '@/store/appState';
 import { SkeletonPreview } from './SkeletonPreview';
+
+// ── Helper: traverse group and collect all non-empty child names (Pattern 3) ──────────────────
+function scanNamedGroups(group: Group): string[] {
+  const names: string[] = [];
+  group.traverse((child: Object3D) => {
+    if (child.name) names.push(child.name);
+  });
+  return [...new Set(names)];
+}
 
 // Spinner fallback shown inside R3F Suspense while GLB parses
 function LoadingSpinnerMesh() {
@@ -20,10 +29,12 @@ function GLBModel({
   url,
   controlsRef,
   modelGroupRef,
+  onGroupsScanned,
 }: {
   url: string;
   controlsRef: React.RefObject<any>;
   modelGroupRef?: React.RefObject<Group | null>;
+  onGroupsScanned?: (names: string[]) => void;
 }) {
   const { scene } = useGLTF(url);
   // CR-04: Clone scene to avoid mutating the useGLTF-cached original
@@ -55,7 +66,11 @@ function GLBModel({
       controlsRef.current.target.set(0, 0, 0);
       controlsRef.current.update();
     }
-  }, [clonedScene, controlsRef]);
+
+    // Scan named groups and notify parent (D-13, Pattern 3)
+    const names = scanNamedGroups(groupRef.current);
+    onGroupsScanned?.(names);
+  }, [clonedScene, controlsRef, onGroupsScanned]);
 
   return (
     <group ref={groupRef}>
@@ -104,10 +119,12 @@ function GLBModelWithErrorBoundary({
   url,
   controlsRef,
   modelGroupRef,
+  onGroupsScanned,
 }: {
   url: string;
   controlsRef: React.RefObject<any>;
   modelGroupRef?: React.RefObject<Group | null>;
+  onGroupsScanned?: (names: string[]) => void;
 }) {
   const setModelLoadError = useAppStore((s) => s.setModelLoadError);
   const setModelUrl = useAppStore((s) => s.setModelUrl);
@@ -121,7 +138,7 @@ function GLBModelWithErrorBoundary({
       onRevert={() => setModelUrl(null)}
     >
       <React.Suspense fallback={<LoadingSpinnerMesh />}>
-        <GLBModel url={url} controlsRef={controlsRef} modelGroupRef={modelGroupRef} />
+        <GLBModel url={url} controlsRef={controlsRef} modelGroupRef={modelGroupRef} onGroupsScanned={onGroupsScanned} />
       </React.Suspense>
     </ModelErrorBoundary>
   );
@@ -131,17 +148,19 @@ function GLBModelWithErrorBoundary({
 export function ModelViewer({
   controlsRef,
   modelGroupRef,
+  onGroupsScanned,
 }: {
   controlsRef: React.RefObject<any>;
   modelGroupRef?: React.RefObject<Group | null>;
+  onGroupsScanned?: (names: string[]) => void;
 }) {
   const modelUrl = useAppStore((s) => s.modelUrl);
 
   if (modelUrl === null) {
-    return <SkeletonPreview modelGroupRef={modelGroupRef} />;
+    return <SkeletonPreview modelGroupRef={modelGroupRef} onGroupsScanned={onGroupsScanned} />;
   }
 
   return (
-    <GLBModelWithErrorBoundary url={modelUrl} controlsRef={controlsRef} modelGroupRef={modelGroupRef} />
+    <GLBModelWithErrorBoundary url={modelUrl} controlsRef={controlsRef} modelGroupRef={modelGroupRef} onGroupsScanned={onGroupsScanned} />
   );
 }

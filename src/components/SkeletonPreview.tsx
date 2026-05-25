@@ -1,8 +1,17 @@
-import { useRef } from 'react';
-import type { Group } from 'three';
+import { useRef, useLayoutEffect } from 'react';
+import type { Group, Object3D } from 'three';
 import type React from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useSkeletonAnimation } from '@/hooks/useSkeletonAnimation';
+
+// Helper: traverse group and collect all non-empty child names
+function scanNamedGroups(group: Group): string[] {
+  const names: string[] = [];
+  group.traverse((child: Object3D) => {
+    if (child.name) names.push(child.name);
+  });
+  return [...new Set(names)];
+}
 
 const TWO_PI = Math.PI * 2;
 
@@ -126,12 +135,21 @@ function ProceduralSkeleton() {
 
 interface SkeletonPreviewProps {
   modelGroupRef?: React.RefObject<Group | null>;
+  onGroupsScanned?: (names: string[]) => void;
 }
 
-export function SkeletonPreview({ modelGroupRef }: SkeletonPreviewProps = {}) {
+export function SkeletonPreview({ modelGroupRef, onGroupsScanned }: SkeletonPreviewProps = {}) {
   const localGroupRef = useRef<Group>(null);
   const groupRef = (modelGroupRef ?? localGroupRef) as React.RefObject<Group>;
   const { isAnimating, stopAnimation, rotationSpeed, rotationRef } = useSkeletonAnimation();
+
+  // Scan named groups when procedural skeleton mounts (empty deps — skeleton never changes)
+  useLayoutEffect(() => {
+    if (!groupRef.current) return;
+    const names = scanNamedGroups(groupRef.current);
+    onGroupsScanned?.(names);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally empty: procedural skeleton is static
 
   useFrame(() => {
     if (isAnimating && groupRef.current && rotationRef.current) {
