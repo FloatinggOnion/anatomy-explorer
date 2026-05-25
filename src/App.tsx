@@ -7,6 +7,7 @@ import { Canvas } from '@/components/Canvas';
 import { BottomToolbar } from '@/components/BottomToolbar';
 import { LandmarkCanvas } from '@/components/LandmarkCanvas';
 import { HandStatusIndicator } from '@/components/HandStatusIndicator';
+import { ModelGalleryDrawer } from '@/components/ModelGalleryDrawer';
 import { useHandTracking } from '@/hooks/useHandTracking';
 import { useGestureInterpreter } from '@/hooks/useGestureInterpreter';
 import { useWebcamRef } from '@/context/WebcamRefContext';
@@ -70,6 +71,7 @@ function AppInner() {
 
       {/* z:10 — UI overlays */}
       <HandStatusIndicator />
+      <ModelGalleryDrawer />
       <BottomToolbar />
     </>
   );

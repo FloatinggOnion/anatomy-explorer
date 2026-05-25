@@ -1,56 +1,16 @@
-import { useRef, useState, useEffect } from 'react';
-import { useGLTF } from '@react-three/drei';
+import { useEffect } from 'react';
 import { useAppStore } from '@/store/appState';
 
 export function BottomToolbar() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const prevObjectUrlRef = useRef<string | null>(null);
-
-  const setModelUrl = useAppStore((s) => s.setModelUrl);
+  const setDrawerOpen     = useAppStore((s) => s.setDrawerOpen);
   const setModelLoadError = useAppStore((s) => s.setModelLoadError);
-  const landmarksVisible = useAppStore((s) => s.landmarksVisible);
+  const landmarksVisible  = useAppStore((s) => s.landmarksVisible);
   const setLandmarksVisible = useAppStore((s) => s.setLandmarksVisible);
-  const modelLoadError = useAppStore((s) => s.modelLoadError);
-
-  // Local loading state — best-effort 2s spinner after file selection (D-07)
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // CR-04: Clear useGLTF cache and revoke previous object URL to prevent stale cache + memory leak
-    const newUrl = URL.createObjectURL(file);
-    if (prevObjectUrlRef.current) {
-      useGLTF.clear(prevObjectUrlRef.current);
-      URL.revokeObjectURL(prevObjectUrlRef.current);
-    }
-    prevObjectUrlRef.current = newUrl;
-
-    setModelUrl(newUrl);
-    setModelLoadError(null);
-    setIsLoading(true);
-
-    // Reset so same file can be reloaded
-    e.target.value = '';
-  };
-
-  // Clear loading spinner after 2 seconds (best-effort — no store coupling needed)
-  useEffect(() => {
-    if (!isLoading) return;
-    const timer = setTimeout(() => setIsLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, [isLoading]);
-
-  // Revoke object URL on unmount to prevent memory leak (CR-01)
-  useEffect(() => {
-    return () => {
-      if (prevObjectUrlRef.current) {
-        URL.revokeObjectURL(prevObjectUrlRef.current);
-        prevObjectUrlRef.current = null;
-      }
-    };
-  }, []);
+  const modelLoadError    = useAppStore((s) => s.modelLoadError);
+  const explodeActive     = useAppStore((s) => s.explodeActive);
+  const setExplodeActive  = useAppStore((s) => s.setExplodeActive);
+  const inspectMode       = useAppStore((s) => s.inspectMode);
+  const setInspectMode    = useAppStore((s) => s.setInspectMode);
 
   // Auto-dismiss error toast after 5 seconds (D-08)
   useEffect(() => {
@@ -59,37 +19,20 @@ export function BottomToolbar() {
     return () => clearTimeout(timer);
   }, [modelLoadError, setModelLoadError]);
 
+  // Divider helper
+  const Divider = () => (
+    <div
+      style={{
+        width: 1,
+        height: 24,
+        background: 'rgba(255, 255, 255, 0.2)',
+        flexShrink: 0,
+      }}
+    />
+  );
+
   return (
     <>
-      {/* Loading spinner overlay */}
-      {isLoading && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 10,
-            background: 'rgba(17, 24, 39, 0.8)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 16,
-          }}
-        >
-          <div
-            className="mp-spin"
-            style={{
-              width: 32,
-              height: 32,
-              border: '3px solid transparent',
-              borderTop: '3px solid #2563EB',
-              borderRadius: '50%',
-            }}
-          />
-          <span style={{ fontSize: 20, color: '#ffffff' }}>Loading model...</span>
-        </div>
-      )}
-
       {/* Error toast — bottom-right, auto-dismisses after 5s (D-08) */}
       {modelLoadError && (
         <div
@@ -129,18 +72,9 @@ export function BottomToolbar() {
           gap: 12,
         }}
       >
-        {/* Hidden file input — accepts GLB and GLTF files */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".glb,.gltf"
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-
-        {/* Load Model button */}
+        {/* 1. Models button — accent fill, opens model gallery drawer */}
         <button
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => setDrawerOpen(true)}
           style={{
             background: '#2563EB',
             color: '#ffffff',
@@ -151,21 +85,16 @@ export function BottomToolbar() {
             fontWeight: 400,
             cursor: 'pointer',
             border: 'none',
+            flexShrink: 0,
           }}
         >
-          Load Model
+          Models
         </button>
 
-        {/* Vertical divider */}
-        <div
-          style={{
-            width: 1,
-            height: 24,
-            background: 'rgba(255, 255, 255, 0.2)',
-          }}
-        />
+        {/* 2. Divider */}
+        <Divider />
 
-        {/* Landmark toggle button */}
+        {/* 3. Landmarks toggle — ghost style, unchanged from Phase 2 */}
         <button
           onClick={() => setLandmarksVisible(!landmarksVisible)}
           style={{
@@ -178,9 +107,78 @@ export function BottomToolbar() {
             fontSize: 12,
             fontWeight: 400,
             cursor: 'pointer',
+            flexShrink: 0,
           }}
         >
           {landmarksVisible ? 'Landmarks ON' : 'Landmarks OFF'}
+        </button>
+
+        {/* 4. Divider */}
+        <Divider />
+
+        {/* 5. Layers button — ghost style, disabled (stub for Plan 03) */}
+        <button
+          disabled
+          aria-disabled="true"
+          style={{
+            background: 'transparent',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            color: '#ffffff',
+            borderRadius: 6,
+            padding: '0 12px',
+            height: 36,
+            fontSize: 12,
+            fontWeight: 400,
+            cursor: 'not-allowed',
+            opacity: 0.4,
+            flexShrink: 0,
+          }}
+        >
+          Layers
+        </button>
+
+        {/* 6. Divider */}
+        <Divider />
+
+        {/* 7. Explode toggle — accent fill when active, ghost when inactive */}
+        <button
+          onClick={() => setExplodeActive(!explodeActive)}
+          style={{
+            background: explodeActive ? '#2563EB' : 'transparent',
+            border: explodeActive ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+            color: '#ffffff',
+            borderRadius: 6,
+            padding: '0 12px',
+            height: 36,
+            fontSize: 12,
+            fontWeight: 400,
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          Explode
+        </button>
+
+        {/* 8. Divider */}
+        <Divider />
+
+        {/* 9. Inspect toggle — accent fill when active, ghost when inactive */}
+        <button
+          onClick={() => setInspectMode(!inspectMode)}
+          style={{
+            background: inspectMode ? '#2563EB' : 'transparent',
+            border: inspectMode ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+            color: '#ffffff',
+            borderRadius: 6,
+            padding: '0 12px',
+            height: 36,
+            fontSize: 12,
+            fontWeight: 400,
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          Inspect
         </button>
       </div>
     </>
