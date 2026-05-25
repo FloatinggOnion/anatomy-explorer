@@ -2,13 +2,17 @@ import React, { Suspense, useRef, useEffect } from 'react';
 import { Canvas as R3FCanvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import type { Group } from 'three';
+import { Vector2 } from 'three';
 import { useAppStore } from '@/store/appState';
 import type { GestureCommand } from '@/types/gestures';
 import { ModelViewer } from './ModelViewer';
 import { SceneController } from './SceneController';
+import { PointerRaycaster } from './PointerRaycaster';
+import { LabelBubble } from './LabelBubble';
 
 interface CanvasProps {
   gestureCommandRef?: React.MutableRefObject<GestureCommand | null>;
+  pointingNDCRef?: React.MutableRefObject<Vector2 | null>;
 }
 
 function FallbackPlaceholder() {
@@ -20,7 +24,10 @@ function FallbackPlaceholder() {
   );
 }
 
-export function Canvas({ gestureCommandRef: externalGestureCommandRef }: CanvasProps) {
+export function Canvas({
+  gestureCommandRef: externalGestureCommandRef,
+  pointingNDCRef: externalPointingNDCRef,
+}: CanvasProps) {
   const controlsRef = useRef(null);
   const gestureActive = useAppStore((s) => s.gestureActive);
 
@@ -28,8 +35,12 @@ export function Canvas({ gestureCommandRef: externalGestureCommandRef }: CanvasP
   const internalGestureCommandRef = useRef<GestureCommand | null>(null);
   const gestureCommandRef = externalGestureCommandRef ?? internalGestureCommandRef;
 
+  // Internal fallback for pointingNDCRef — used when Canvas is rendered standalone
+  const internalPointingNDCRef = useRef<Vector2 | null>(null);
+  const pointingNDCRef = externalPointingNDCRef ?? internalPointingNDCRef;
+
   // modelGroupRef is created here and forwarded to both ModelViewer (writes)
-  // and SceneController (reads) — transforms applied in SceneController.useFrame
+  // and SceneController/PointerRaycaster/LabelBubble (reads)
   const modelGroupRef = useRef<Group | null>(null);
 
   // Pitfall A mitigation (T-02-12): imperative fallback ensures OrbitControls disables
@@ -68,8 +79,16 @@ export function Canvas({ gestureCommandRef: externalGestureCommandRef }: CanvasP
         modelGroupRef={modelGroupRef}
       />
 
+      {/* PointerRaycaster: raycasts from pointing gesture NDC; sets selectedMeshName after dwell */}
+      <PointerRaycaster
+        pointingNDCRef={pointingNDCRef}
+        modelGroupRef={modelGroupRef}
+      />
+
       <Suspense fallback={<FallbackPlaceholder />}>
         <ModelViewer controlsRef={controlsRef} modelGroupRef={modelGroupRef} />
+        {/* LabelBubble: anchored drei Html label for selected anatomy part */}
+        <LabelBubble modelGroupRef={modelGroupRef} />
       </Suspense>
     </R3FCanvas>
   );
