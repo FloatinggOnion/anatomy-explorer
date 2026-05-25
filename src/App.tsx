@@ -1,5 +1,6 @@
 import { WebcamProvider } from '@/components/WebcamProvider';
 import { Canvas } from '@/components/Canvas';
+import { BottomToolbar } from '@/components/BottomToolbar';
 
 export default function App() {
   return (
@@ -16,7 +17,7 @@ export default function App() {
 
       {/* z:10 — UI overlays */}
       {/* TODO Plan 02-03: <HandStatusIndicator /> — hand detection dot indicator, zIndex: 10 */}
-      {/* TODO Plan 02-02: <BottomToolbar /> — model file picker + landmark toggle, zIndex: 10 */}
+      <BottomToolbar />
     </WebcamProvider>
   );
 }
