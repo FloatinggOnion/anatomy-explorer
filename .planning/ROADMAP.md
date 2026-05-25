@@ -60,7 +60,10 @@ This roadmap delivers a web-based anatomy education app where users manipulate 3
   2. User can point at a body part to select it and see a label with its name and description
   3. User can toggle body system layers on and off (e.g., show only skeletal, hide muscular)
   4. User can trigger explode view to separate the model into its constituent parts for internal inspection
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 03-01-PLAN.md — Store extension (all Phase 3 fields), ModelGalleryDrawer, BottomToolbar restructure
+  - [ ] 03-02-PLAN.md — Anatomy labels data, LabelBubble (drei Html), pointing+dwell gesture, PointerRaycaster
+  - [ ] 03-03-PLAN.md — LayerChipRow, ExplodeController (animated lerp), layer visibility, spread/fist gestures
 **UI hint**: yes
 
 ### Phase 4: Second Gesture Mode & Polish
@@ -84,5 +87,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. AR Canvas & Platform Foundation | 4/4 | Planned | 2026-05-23 |
 | 2. 3D Models & Hand Tracking | 0/4 | Not started | - |
-| 3. Educational Features | 0/TBD | Not started | - |
+| 3. Educational Features | 0/3 | Not started | - |
 | 4. Second Gesture Mode & Polish | 0/TBD | Not started | - |
