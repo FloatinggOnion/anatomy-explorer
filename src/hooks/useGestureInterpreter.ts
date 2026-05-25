@@ -39,7 +39,6 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
 
   // Stable Zustand setter refs — won't trigger re-renders inside useCallback
   const setGestureActive = useAppStore((s) => s.setGestureActive);
-  const setHandDetected = useAppStore((s) => s.setHandDetected);
 
   // Internal state tracked via refs — no state updates needed (avoids re-renders on every frame)
   const gestureStateRef = useRef<GestureState>({ mode: 'idle', pinchOrigin: null });
@@ -55,7 +54,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       videoWidth: number,
       videoHeight: number,
     ): GestureCommand => {
-      setHandDetected(landmarks.length > 0);
+      // WR-01: setHandDetected removed — caller (App.tsx handleResults) already sets it
 
       // ── No hands visible ────────────────────────────────────────────────────────
       if (landmarks.length === 0) {
@@ -197,7 +196,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       return { type: 'idle' };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setGestureActive, setHandDetected, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
+    [setGestureActive, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
   );
 
   return { interpret, isPinchingRef };
