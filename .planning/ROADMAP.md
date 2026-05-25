@@ -63,7 +63,7 @@ This roadmap delivers a web-based anatomy education app where users manipulate 3
 **Plans**: 3 plans
   - [x] 03-01-PLAN.md — Store extension (all Phase 3 fields), ModelGalleryDrawer, BottomToolbar restructure
   - [x] 03-02-PLAN.md — Anatomy labels data, LabelBubble (drei Html), pointing+dwell gesture, PointerRaycaster
-  - [ ] 03-03-PLAN.md — LayerChipRow, ExplodeController (animated lerp), layer visibility, spread/fist gestures
+  - [x] 03-03-PLAN.md — LayerChipRow, ExplodeController (animated lerp), layer visibility, spread/fist gestures
 **UI hint**: yes
 
 ### Phase 4: Second Gesture Mode & Polish
