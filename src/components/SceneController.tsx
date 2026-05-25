@@ -95,6 +95,16 @@ export function SceneController({ gestureCommandRef, modelGroupRef }: SceneContr
       group.scale.setScalar(scaleRef.current);
     }
 
+    if (cmd.type === 'wave-zoom') {
+      wasRotatingRef.current = false;
+      const zoomSpeed = cmd.speed * 0.02;
+      const factor = cmd.direction === 'in' ? 1 + zoomSpeed : 1 - zoomSpeed;
+      const currentScale = group.scale.x;
+      const newScale = Math.max(0.1, Math.min(5.0, currentScale * factor));
+      scaleRef.current = newScale;
+      group.scale.setScalar(newScale);
+    }
+
     if (cmd.type === 'pan') {
       wasRotatingRef.current = false;
       group.position.x += cmd.delta.x * 0.005;
