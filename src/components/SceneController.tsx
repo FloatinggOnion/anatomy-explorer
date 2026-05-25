@@ -43,18 +43,18 @@ export function SceneController({ gestureCommandRef, modelGroupRef }: SceneContr
   const scaleRef = useRef<number>(1.0);
   const velocityRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isDeceleratingRef = useRef<boolean>(false);
-  /** Track whether last frame had an active rotate command — used to trigger momentum */
   const wasRotatingRef = useRef<boolean>(false);
+  /** Track last-applied command to avoid re-applying the same delta across frames */
+  const lastAppliedRef = useRef<GestureCommand | null>(null);
 
   useFrame(() => {
     const group = modelGroupRef.current;
-    if (!group) return; // Model not yet loaded — skip frame (no fallback to scene root)
+    if (!group) return;
 
     const cmd = gestureCommandRef.current;
+    const isNewCmd = cmd !== lastAppliedRef.current;
 
-    // ── Momentum deceleration (T-02-11: loop exits cleanly) ──────────────────────
-    // WR-04: Only apply momentum when no active rotate gesture — prevents double-rotation
-    // on the first frame of a new pinch after momentum was active
+    // ── Momentum deceleration ───────────────────────────────────────────────────
     if (isDeceleratingRef.current && (!cmd || cmd.type !== 'rotate')) {
       velocityRef.current.x *= 0.92;
       velocityRef.current.y *= 0.92;
@@ -75,35 +75,30 @@ export function SceneController({ gestureCommandRef, modelGroupRef }: SceneContr
       wasRotatingRef.current = false;
     }
 
-    if (!cmd || cmd.type === 'idle') return;
+    if (!cmd || cmd.type === 'idle' || !isNewCmd) return;
+
+    // Mark as applied so we don't re-apply the same command next frame
+    lastAppliedRef.current = cmd;
 
     // ── Active gesture commands ───────────────────────────────────────────────────
 
     if (cmd.type === 'rotate') {
-      // Active gesture overrides momentum deceleration
       isDeceleratingRef.current = false;
-      // Store velocity for momentum after release
       velocityRef.current = { x: cmd.delta.x, y: cmd.delta.y };
       wasRotatingRef.current = true;
       applyRotationDelta(group, cmd.delta.x, cmd.delta.y);
-      // Consume command — interpreter emits fresh commands each detection frame
-      gestureCommandRef.current = null;
     }
 
     if (cmd.type === 'scale') {
       wasRotatingRef.current = false;
-      // T-02-10: clamp to [0.2, 5.0] — unbounded scale accumulation mitigated
       scaleRef.current = Math.min(5.0, Math.max(0.2, scaleRef.current * cmd.factor));
       group.scale.setScalar(scaleRef.current);
-      gestureCommandRef.current = null;
     }
 
     if (cmd.type === 'pan') {
       wasRotatingRef.current = false;
-      // Translate model in XY plane; invert Y because screen Y-down = world Y-up
       group.position.x += cmd.delta.x * 0.005;
       group.position.y -= cmd.delta.y * 0.005;
-      gestureCommandRef.current = null;
     }
   });
 

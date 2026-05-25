@@ -30,10 +30,10 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     scaleSensitivity: _scaleSensitivity,
   } = useControls('Gesture', {
-    PINCH_ENTER: { value: 0.05, min: 0.01, max: 0.15, step: 0.005 },
-    PINCH_EXIT: { value: 0.08, min: 0.02, max: 0.20, step: 0.005 },
-    DEAD_ZONE_PX: { value: 10, min: 0, max: 30, step: 1 },
-    rotationSensitivity: { value: 0.01, min: 0.001, max: 0.05, step: 0.001 },
+    PINCH_ENTER: { value: 0.07, min: 0.01, max: 0.15, step: 0.005 },
+    PINCH_EXIT: { value: 0.10, min: 0.02, max: 0.20, step: 0.005 },
+    DEAD_ZONE_PX: { value: 5, min: 0, max: 30, step: 1 },
+    rotationSensitivity: { value: 0.04, min: 0.001, max: 0.1, step: 0.001 },
     scaleSensitivity: { value: 1.0, min: 0.5, max: 3.0, step: 0.1 },
   });
 

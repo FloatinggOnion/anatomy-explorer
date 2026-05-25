@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import type { Group } from 'three';
+import type React from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useSkeletonAnimation } from '@/hooks/useSkeletonAnimation';
 
@@ -123,8 +124,13 @@ function ProceduralSkeleton() {
   );
 }
 
-export function SkeletonPreview() {
-  const groupRef = useRef<Group>(null);
+interface SkeletonPreviewProps {
+  modelGroupRef?: React.RefObject<Group | null>;
+}
+
+export function SkeletonPreview({ modelGroupRef }: SkeletonPreviewProps = {}) {
+  const localGroupRef = useRef<Group>(null);
+  const groupRef = (modelGroupRef ?? localGroupRef) as React.RefObject<Group>;
   const { isAnimating, stopAnimation, rotationSpeed, rotationRef } = useSkeletonAnimation();
 
   useFrame(() => {
@@ -138,7 +144,6 @@ export function SkeletonPreview() {
     <group
       ref={groupRef}
       onPointerDown={() => stopAnimation()}
-      // Shift down so figure is centred vertically in view (feet at ~-1.3, head at ~1.7)
       position={[0, -0.2, 0]}
     >
       <ProceduralSkeleton />

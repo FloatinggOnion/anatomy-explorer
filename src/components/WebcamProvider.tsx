@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useWebcam } from '@/hooks/useWebcam';
 import { WebcamRefContext } from '@/context/WebcamRefContext';
 import { PrePermissionScreen } from './PrePermissionScreen';
@@ -13,11 +14,10 @@ export function WebcamProvider({ children }: WebcamProviderProps) {
 
   return (
     <WebcamRefContext.Provider value={videoRef}>
-      {/* z:0 — Video background, fixed to viewport */}
       {!isPermissionDenied ? (
         <video
           ref={videoRef}
-          style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', objectFit: 'cover', zIndex: 0 }}
+          style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', objectFit: 'cover', zIndex: 0, transform: 'scaleX(-1)' }}
           playsInline
           muted
         />
@@ -33,11 +33,13 @@ export function WebcamProvider({ children }: WebcamProviderProps) {
         />
       )}
 
-      {/* Pre-permission screen overlay (z:20) */}
-      <PrePermissionScreen onStartCamera={startCamera} />
-
-      {/* Canvas and UI children render above */}
       {children}
+
+      {permissionState !== 'granted' &&
+        createPortal(
+          <PrePermissionScreen onStartCamera={startCamera} />,
+          document.body,
+        )}
     </WebcamRefContext.Provider>
   );
 }

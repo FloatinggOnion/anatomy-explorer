@@ -138,7 +138,7 @@ export function ModelViewer({
   const modelUrl = useAppStore((s) => s.modelUrl);
 
   if (modelUrl === null) {
-    return <SkeletonPreview />;
+    return <SkeletonPreview modelGroupRef={modelGroupRef} />;
   }
 
   return (
