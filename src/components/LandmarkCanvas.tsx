@@ -18,9 +18,14 @@ export function LandmarkCanvas({ landmarks, isPinching }: LandmarkCanvasProps) {
     const video = videoRef.current;
     if (!canvas || !video) return;
 
-    // Match canvas pixel dimensions to the stream resolution (Pitfall E)
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    // WR-05: Only resize when dimensions actually change — avoids clearing canvas
+    // and resetting 2D context state 30 times/sec unnecessarily
+    const currentWidth = video.videoWidth || 640;
+    const currentHeight = video.videoHeight || 480;
+    if (canvas.width !== currentWidth || canvas.height !== currentHeight) {
+      canvas.width = currentWidth;
+      canvas.height = currentHeight;
+    }
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
