@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { useGLTF } from '@react-three/drei';
 import { useAppStore } from '@/store/appState';
 
 export function BottomToolbar() {
@@ -18,9 +19,12 @@ export function BottomToolbar() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Revoke previous object URL to prevent memory leak (Pitfall D, T-02-05)
+    // CR-04: Clear useGLTF cache and revoke previous object URL to prevent stale cache + memory leak
     const newUrl = URL.createObjectURL(file);
-    if (prevObjectUrlRef.current) URL.revokeObjectURL(prevObjectUrlRef.current);
+    if (prevObjectUrlRef.current) {
+      useGLTF.clear(prevObjectUrlRef.current);
+      URL.revokeObjectURL(prevObjectUrlRef.current);
+    }
     prevObjectUrlRef.current = newUrl;
 
     setModelUrl(newUrl);

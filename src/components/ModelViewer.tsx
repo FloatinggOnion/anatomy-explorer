@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import type { Group } from 'three';
 import { Box3, Vector3 } from 'three';
 import { useGLTF } from '@react-three/drei';
@@ -26,6 +26,8 @@ function GLBModel({
   modelGroupRef?: React.RefObject<Group | null>;
 }) {
   const { scene } = useGLTF(url);
+  // CR-04: Clone scene to avoid mutating the useGLTF-cached original
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
   const localGroupRef = useRef<Group>(null);
   // Use the forwarded ref from Canvas/SceneController if provided, else local ref
   const groupRef = (modelGroupRef ?? localGroupRef) as React.RefObject<Group>;
@@ -51,11 +53,11 @@ function GLBModel({
       controlsRef.current.target.set(0, 0, 0);
       controlsRef.current.update();
     }
-  }, [scene, controlsRef]);
+  }, [clonedScene, controlsRef]);
 
   return (
     <group ref={groupRef}>
-      <primitive object={scene} />
+      <primitive object={clonedScene} />
     </group>
   );
 }
