@@ -13,6 +13,8 @@ export function BottomToolbar() {
   const inspectMode       = useAppStore((s) => s.inspectMode);
   const setInspectMode    = useAppStore((s) => s.setInspectMode);
   const availableLayers   = useAppStore((s) => s.availableLayers);
+  const gestureMode       = useAppStore((s) => s.gestureMode);
+  const setGestureMode    = useAppStore((s) => s.setGestureMode);
 
   // Local state: whether the layer chip row is expanded
   const [layersOpen, setLayersOpen] = useState(false);
@@ -191,6 +193,34 @@ export function BottomToolbar() {
         >
           Inspect
         </button>
+
+        {/* 10-11. Wave Mode toggle — only visible when inspectMode is false (D-16) */}
+        {!inspectMode && (
+          <>
+            {/* Divider */}
+            <Divider />
+
+            {/* Wave Mode toggle — accent fill when active, ghost when inactive */}
+            <button
+              onClick={() => setGestureMode(gestureMode === 'wave' ? 'pinch' : 'wave')}
+              style={{
+                background: gestureMode === 'wave' ? '#2563EB' : 'transparent',
+                border: gestureMode === 'wave' ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                color: '#ffffff',
+                borderRadius: 6,
+                padding: '0 12px',
+                height: 36,
+                fontSize: 12,
+                fontWeight: 400,
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'background 200ms, border 200ms',
+              }}
+            >
+              {gestureMode === 'wave' ? 'Pinch Mode' : 'Wave Mode'}
+            </button>
+          </>
+        )}
       </div>
     </>
   );

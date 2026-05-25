@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import type { HandLandmarkerResult } from '@mediapipe/tasks-vision';
 import type { GestureCommand } from '@/types/gestures';
@@ -16,7 +16,11 @@ import { useAppStore } from '@/store/appState';
 function AppInner() {
   const [landmarks, setLandmarks] = useState<NormalizedLandmark[][]>([]);
   const [isPinching, setIsPinching] = useState<boolean>(false);
+  const [infoToast, setInfoToast] = useState<string | null>(null);
   const setHandDetected = useAppStore((s) => s.setHandDetected);
+  const inspectMode = useAppStore((s) => s.inspectMode);
+  const gestureMode = useAppStore((s) => s.gestureMode);
+  const setGestureMode = useAppStore((s) => s.setGestureMode);
 
   // Gesture pipeline: ref shared between AppInner (writer) and Canvas/SceneController (reader)
   const gestureCommandRef = useRef<GestureCommand | null>(null);
@@ -59,6 +63,21 @@ function AppInner() {
 
   useHandTracking(handleResults);
 
+  // Effect: When inspectMode activates while gestureMode is 'wave', auto-switch to 'pinch' (D-16)
+  useEffect(() => {
+    if (inspectMode && gestureMode === 'wave') {
+      setGestureMode('pinch');
+      setInfoToast('Inspect mode activated. Switched to Pinch+Drag mode.');
+    }
+  }, [inspectMode, gestureMode, setGestureMode]);
+
+  // Effect: Auto-dismiss info toast after 3000ms
+  useEffect(() => {
+    if (!infoToast) return;
+    const timer = setTimeout(() => setInfoToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [infoToast]);
+
   return (
     <>
       {/* z:1 — 2D hand landmark overlay, pointerEvents:none */}
@@ -69,9 +88,31 @@ function AppInner() {
         <Canvas gestureCommandRef={gestureCommandRef} pointingNDCRef={pointingNDCRef} />
       </div>
 
+      {/* Info toast — blue color for Inspect/Wave mode messages (D-16) */}
+      {infoToast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 20,
+            background: '#1e3a5f',
+            color: '#93c5fd',
+            padding: '12px 16px',
+            borderRadius: 8,
+            maxWidth: 320,
+            fontSize: 14,
+            whiteSpace: 'pre-line',
+          }}
+        >
+          {infoToast}
+        </div>
+      )}
+
       {/* z:10 — UI overlays */}
       <HandStatusIndicator />
       <ModelGalleryDrawer />
+      {/* Wave button is hidden in BottomToolbar when inspectMode=true, so Inspect+Wave conflict cannot be triggered via normal UI */}
       <BottomToolbar />
     </>
   );
