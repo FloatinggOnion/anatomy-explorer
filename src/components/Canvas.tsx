@@ -1,6 +1,8 @@
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 import { Canvas as R3FCanvas } from '@react-three/fiber';
-import { SkeletonPreview } from './SkeletonPreview';
+import { OrbitControls } from '@react-three/drei';
+import { useAppStore } from '@/store/appState';
+import { ModelViewer } from './ModelViewer';
 
 function FallbackPlaceholder() {
   return (
@@ -12,6 +14,9 @@ function FallbackPlaceholder() {
 }
 
 export function Canvas() {
+  const controlsRef = useRef(null);
+  const gestureActive = useAppStore((s) => s.gestureActive);
+
   return (
     <R3FCanvas
       gl={{ alpha: true, antialias: true }}
@@ -23,8 +28,18 @@ export function Canvas() {
       <ambientLight intensity={0.6} />
       <directionalLight position={[5, 10, 5]} intensity={1.0} />
 
+      <OrbitControls
+        ref={controlsRef}
+        enabled={!gestureActive}
+        enablePan={true}
+        enableZoom={true}
+        enableRotate={true}
+        minDistance={1}
+        maxDistance={10}
+      />
+
       <Suspense fallback={<FallbackPlaceholder />}>
-        <SkeletonPreview />
+        <ModelViewer controlsRef={controlsRef} />
       </Suspense>
     </R3FCanvas>
   );
