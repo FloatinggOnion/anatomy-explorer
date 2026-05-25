@@ -12,22 +12,21 @@ Users can see, rotate, and inspect 3D anatomy models using their hands in front 
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Webcam feed displayed as live background — Phase 1
+- ✓ 3D anatomy models rendered and floating in a defined viewport area over the camera feed — Phase 2 (GLB loading, auto-fit, OrbitControls)
+- ✓ Hand tracking via webcam — detect hand position, gestures, and movement — Phase 2 (MediaPipe HandLandmarker, 21 landmarks, 30fps)
+- ✓ Pinch+drag gesture mode — pinch to grab, drag to rotate, two-hand pinch to scale — Phase 2 (hysteresis, dead zone, momentum)
+- ✓ Source free/open 3D anatomy models (glTF/GLB format) — Phase 2 (skeleton.glb + body.glb bundled, file picker for user models)
+- ✓ Runs in web browser (Chrome/Firefox) — Phase 1
 
 ### Active
 
-- [ ] Webcam feed displayed as live background
-- [ ] 3D anatomy models rendered and floating in a defined viewport area over the camera feed
-- [ ] Hand tracking via webcam — detect hand position, gestures, and movement
-- [ ] Pinch+drag gesture mode — pinch to grab, drag to rotate, two-hand pinch to scale
 - [ ] Open hand wave gesture mode — swipe to rotate, spread fingers to zoom in, close fist to zoom out
 - [ ] Toggle between the two gesture modes
 - [ ] Model gallery/menu to browse and select different anatomy models
 - [ ] Tap/select body parts to see labels with name and description
 - [ ] Layer toggle — show/hide body systems (skeletal, muscular, nervous, etc.)
 - [ ] Explode view — separate model into constituent parts for internal inspection
-- [ ] Source free/open 3D anatomy models (glTF/GLB format)
-- [ ] Runs in web browser (Chrome/Firefox)
 - [ ] Runs as Tauri desktop app from the same codebase
 
 ### Out of Scope
@@ -63,11 +62,14 @@ Users can see, rotate, and inspect 3D anatomy models using their hands in front 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Web over iOS/Unity | Avoid sideloading, black screen bugs, and Mac dependency | — Pending |
-| Tauri over Electron | Smaller footprint, user preference | — Pending |
-| pnpm over npm | User preference for TypeScript projects | — Pending |
-| Two gesture modes | Pinch+drag for precision, open hand wave for casual browsing | — Pending |
-| Client-side only | No backend needed, simplifies architecture for 1-week timeline | — Pending |
+| Web over iOS/Unity | Avoid sideloading, black screen bugs, and Mac dependency | ✓ Validated — Phase 1+2 |
+| Tauri over Electron | Smaller footprint, user preference | ✓ Validated — Phase 1 |
+| pnpm over npm | User preference for TypeScript projects | ✓ Validated — Phase 1 |
+| Two gesture modes | Pinch+drag for precision, open hand wave for casual browsing | Pinch+drag shipped Phase 2; wave mode deferred |
+| Client-side only | No backend needed, simplifies architecture for 1-week timeline | ✓ Validated — Phases 1+2 |
+| MediaPipe tasks-vision for hand tracking | Google's maintained WASM solution, 21 landmarks, client-side | ✓ Validated — Phase 2 |
+| Three-tier MediaPipe fallback | Local GPU → CDN GPU → CDN CPU for robustness | ✓ Validated — Phase 2 |
+| Gesture hysteresis thresholds | PINCH_ENTER=0.05, PINCH_EXIT=0.08, 10px dead zone, 500ms debounce | Tunable via Leva — Phase 2 |
 
 ## Evolution
 
@@ -87,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-23 after initialization*
+*Last updated: 2026-05-25 after Phase 2 transition*

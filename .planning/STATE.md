@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-23)
+See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** Users can see, rotate, and inspect 3D anatomy models using their hands in front of a webcam -- making anatomy tangible without physical specimens.
-**Current focus:** Phase 02 — 3d-models-hand-tracking
+**Current focus:** Phase 03 — educational-features
 
 ## Current Position
 
@@ -62,9 +62,10 @@ Progress: [██████░░░░] 75%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Roadmap]: 4 coarse phases derived -- foundation, models+tracking, education, polish
-- [Roadmap]: Pinch+drag ships in Phase 2; open hand wave deferred to Phase 4
-- [Roadmap]: Model sourcing/optimization is part of Phase 2 (gates educational features)
+- [Phase 2]: MediaPipe tasks-vision with three-tier fallback (local GPU → CDN GPU → CDN CPU)
+- [Phase 2]: Gesture hysteresis (PINCH_ENTER=0.05, PINCH_EXIT=0.08) tunable via Leva debug panel
+- [Phase 2]: AppInner pattern for hooks requiring WebcamRefContext inside provider boundary
+- [Phase 2]: Scene cloning to avoid useGLTF cache mutation (CR-04 fix)
 
 ### Pending Todos
 
@@ -72,9 +73,9 @@ None yet.
 
 ### Blockers/Concerns
 
-- Model asset quality unknown -- layer toggles, labels, and explode view depend on models having properly named/grouped mesh hierarchies. Must validate during Phase 2.
-- MediaPipe WASM in Tauri webview not explicitly validated. Test during Phase 1.
+- Model asset quality unknown -- layer toggles, labels, and explode view depend on models having properly named/grouped mesh hierarchies. Must validate during Phase 3.
 - Gesture tuning constants are starting values; will need tuning on demo hardware.
+- hand_landmarker.task model file not bundled locally — downloaded from Google CDN at runtime. Tauri offline use requires network for first init.
 
 ## Deferred Items
 
@@ -84,7 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-25T04:18:23.310Z
-Stopped at: context exhaustion at 75% (2026-05-25)
-Next: Plan 01-04 (Layer toggle UI and model manipulation)
+Last session: 2026-05-25
+Stopped at: Phase 02 complete, ready to plan Phase 03
 Resume file: None
