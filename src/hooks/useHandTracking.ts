@@ -108,6 +108,7 @@ export function useHandTracking(onResults: (r: HandLandmarkerResult) => void): v
 
   // Start loop on mount, clean up on unmount (T-02-08 mitigation)
   useEffect(() => {
+    lastTimeRef.current = 0; // WR-02: reset throttle on loop restart to avoid skipping first frame
     rafRef.current = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(rafRef.current);
