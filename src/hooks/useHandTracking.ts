@@ -37,6 +37,7 @@ export function useHandTracking(onResults: (r: HandLandmarkerResult) => void): v
   const lastTimeRef = useRef<number>(0);
   const videoRef = useWebcamRef();
   const setHandTrackingReady = useAppStore((s) => s.setHandTrackingReady);
+  const setHandTrackingError = useAppStore((s) => s.setHandTrackingError);
 
   // Non-blocking initialization (D-16)
   // Attempt 1: local WASM + local model + GPU delegate
@@ -64,6 +65,7 @@ export function useHandTracking(onResults: (r: HandLandmarkerResult) => void): v
             if (import.meta.env.DEV) console.log('[useHandTracking] Initialized: CDN paths, CPU delegate');
           } catch (err) {
             if (import.meta.env.DEV) console.error('[useHandTracking] All initialization attempts failed:', err);
+            setHandTrackingError('Hand tracking failed to initialize. Check browser compatibility or network.');
             return;
           }
         }
@@ -85,7 +87,7 @@ export function useHandTracking(onResults: (r: HandLandmarkerResult) => void): v
     return () => {
       cancelled = true;
     };
-  }, [setHandTrackingReady]);
+  }, [setHandTrackingReady, setHandTrackingError]);
 
   // Throttled detection loop — runs independently of the R3F render loop (Anti-Pattern 1)
   const loop = useCallback(() => {

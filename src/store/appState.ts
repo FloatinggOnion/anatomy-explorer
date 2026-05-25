@@ -25,6 +25,9 @@ interface AppState {
 
   modelLoadError: string | null;    // D-08 toast error message
   setModelLoadError: (msg: string | null) => void;
+
+  handTrackingError: string | null; // CR-02: surface init failure to UI
+  setHandTrackingError: (msg: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -50,4 +53,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   modelLoadError: null,
   setModelLoadError: (msg) => set({ modelLoadError: msg }),
+
+  handTrackingError: null,
+  setHandTrackingError: (msg) => set({ handTrackingError: msg }),
 }));
