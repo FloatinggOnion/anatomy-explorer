@@ -46,8 +46,8 @@ This roadmap delivers a web-based anatomy education app where users manipulate 3
   4. User can pinch to grab, drag to rotate, and two-hand pinch to scale the model
 **Plans**: 4 plans
   - [x] 02-01-PLAN.md — Install deps, extend Zustand store, gesture types, App.tsx layer stack, MediaPipe WASM offline assets
-  - [ ] 02-02-PLAN.md — OrbitControls, GLB model loading with auto-fit, BottomToolbar, spinner, error toast
-  - [ ] 02-03-PLAN.md — MediaPipe hand tracking hook, LandmarkCanvas, HandStatusIndicator
+  - [x] 02-02-PLAN.md — OrbitControls, GLB model loading with auto-fit, BottomToolbar, spinner, error toast
+  - [x] 02-03-PLAN.md — MediaPipe hand tracking hook, LandmarkCanvas, HandStatusIndicator
   - [ ] 02-04-PLAN.md — Gesture interpreter (pinch+drag, two-hand scale/pan), SceneController, OrbitControls auto-switch
 
 ### Phase 3: Educational Features
