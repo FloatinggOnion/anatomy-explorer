@@ -19,12 +19,16 @@ function LoadingSpinnerMesh() {
 function GLBModel({
   url,
   controlsRef,
+  modelGroupRef,
 }: {
   url: string;
   controlsRef: React.RefObject<any>;
+  modelGroupRef?: React.RefObject<Group | null>;
 }) {
   const { scene } = useGLTF(url);
-  const groupRef = useRef<Group>(null);
+  const localGroupRef = useRef<Group>(null);
+  // Use the forwarded ref from Canvas/SceneController if provided, else local ref
+  const groupRef = (modelGroupRef ?? localGroupRef) as React.RefObject<Group>;
 
   useEffect(() => {
     if (!groupRef.current) return;
@@ -95,9 +99,11 @@ class ModelErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBounda
 function GLBModelWithErrorBoundary({
   url,
   controlsRef,
+  modelGroupRef,
 }: {
   url: string;
   controlsRef: React.RefObject<any>;
+  modelGroupRef?: React.RefObject<Group | null>;
 }) {
   const setModelLoadError = useAppStore((s) => s.setModelLoadError);
   const setModelUrl = useAppStore((s) => s.setModelUrl);
@@ -108,19 +114,27 @@ function GLBModelWithErrorBoundary({
       onRevert={() => setModelUrl(null)}
     >
       <React.Suspense fallback={<LoadingSpinnerMesh />}>
-        <GLBModel url={url} controlsRef={controlsRef} />
+        <GLBModel url={url} controlsRef={controlsRef} modelGroupRef={modelGroupRef} />
       </React.Suspense>
     </ModelErrorBoundary>
   );
 }
 
 // Exported: renders SkeletonPreview when no model loaded, GLBModel when modelUrl is set
-export function ModelViewer({ controlsRef }: { controlsRef: React.RefObject<any> }) {
+export function ModelViewer({
+  controlsRef,
+  modelGroupRef,
+}: {
+  controlsRef: React.RefObject<any>;
+  modelGroupRef?: React.RefObject<Group | null>;
+}) {
   const modelUrl = useAppStore((s) => s.modelUrl);
 
   if (modelUrl === null) {
     return <SkeletonPreview />;
   }
 
-  return <GLBModelWithErrorBoundary url={modelUrl} controlsRef={controlsRef} />;
+  return (
+    <GLBModelWithErrorBoundary url={modelUrl} controlsRef={controlsRef} modelGroupRef={modelGroupRef} />
+  );
 }
