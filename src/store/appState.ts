@@ -28,6 +28,25 @@ interface AppState {
 
   handTrackingError: string | null; // CR-02: surface init failure to UI
   setHandTrackingError: (msg: string | null) => void;
+
+  // Phase 3 fields
+  drawerOpen: boolean;
+  setDrawerOpen: (v: boolean) => void;
+
+  inspectMode: boolean;
+  setInspectMode: (v: boolean) => void;
+
+  explodeActive: boolean;
+  setExplodeActive: (v: boolean) => void;
+
+  visibleLayers: Set<string>;
+  setVisibleLayers: (v: Set<string>) => void;
+
+  availableLayers: string[];
+  setAvailableLayers: (names: string[]) => void;
+
+  selectedMeshName: string | null;
+  setSelectedMeshName: (name: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -56,4 +75,23 @@ export const useAppStore = create<AppState>((set) => ({
 
   handTrackingError: null,
   setHandTrackingError: (msg) => set({ handTrackingError: msg }),
+
+  // Phase 3
+  drawerOpen: false,
+  setDrawerOpen: (v) => set({ drawerOpen: v }),
+
+  inspectMode: false,
+  setInspectMode: (v) => set({ inspectMode: v }),
+
+  explodeActive: false,
+  setExplodeActive: (v) => set({ explodeActive: v }),
+
+  visibleLayers: new Set<string>(),
+  setVisibleLayers: (v) => set({ visibleLayers: v }),
+
+  availableLayers: [],
+  setAvailableLayers: (names) => set({ availableLayers: names }),
+
+  selectedMeshName: null,
+  setSelectedMeshName: (name) => set({ selectedMeshName: name }),
 }));
