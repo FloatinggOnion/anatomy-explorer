@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/appState';
+import { LayerChipRow } from './LayerChipRow';
 
 export function BottomToolbar() {
   const setDrawerOpen     = useAppStore((s) => s.setDrawerOpen);
@@ -11,6 +12,10 @@ export function BottomToolbar() {
   const setExplodeActive  = useAppStore((s) => s.setExplodeActive);
   const inspectMode       = useAppStore((s) => s.inspectMode);
   const setInspectMode    = useAppStore((s) => s.setInspectMode);
+  const availableLayers   = useAppStore((s) => s.availableLayers);
+
+  // Local state: whether the layer chip row is expanded
+  const [layersOpen, setLayersOpen] = useState(false);
 
   // Auto-dismiss error toast after 5 seconds (D-08)
   useEffect(() => {
@@ -33,6 +38,9 @@ export function BottomToolbar() {
 
   return (
     <>
+      {/* Layer chip row — positioned above toolbar, visible when layersOpen and layers exist */}
+      {layersOpen && availableLayers.length > 0 && <LayerChipRow />}
+
       {/* Error toast — bottom-right, auto-dismisses after 5s (D-08) */}
       {modelLoadError && (
         <div
@@ -116,21 +124,24 @@ export function BottomToolbar() {
         {/* 4. Divider */}
         <Divider />
 
-        {/* 5. Layers button — ghost style, disabled (stub for Plan 03) */}
+        {/* 5. Layers button — enabled when named groups exist; disabled otherwise (D-14) */}
         <button
-          disabled
-          aria-disabled="true"
+          disabled={availableLayers.length === 0}
+          aria-disabled={availableLayers.length === 0}
+          onClick={availableLayers.length > 0 ? () => setLayersOpen(!layersOpen) : undefined}
           style={{
             background: 'transparent',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
+            border: layersOpen && availableLayers.length > 0
+              ? '1px solid #2563EB'
+              : '1px solid rgba(255, 255, 255, 0.3)',
             color: '#ffffff',
             borderRadius: 6,
             padding: '0 12px',
             height: 36,
             fontSize: 12,
             fontWeight: 400,
-            cursor: 'not-allowed',
-            opacity: 0.4,
+            cursor: availableLayers.length === 0 ? 'not-allowed' : 'pointer',
+            opacity: availableLayers.length === 0 ? 0.4 : 1,
             flexShrink: 0,
           }}
         >

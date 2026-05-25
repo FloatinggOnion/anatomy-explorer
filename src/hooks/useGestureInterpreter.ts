@@ -31,6 +31,22 @@ function isPointing(hand: NormalizedLandmark[]): boolean {
     && hand[20].y > hand[18].y;   // pinky curled
 }
 
+/** Spread: all 4 non-thumb fingers extended (D-21, Pattern 6 from RESEARCH.md) */
+function isSpread(hand: NormalizedLandmark[]): boolean {
+  return hand[8].y < hand[6].y    // index extended
+    && hand[12].y < hand[10].y    // middle extended
+    && hand[16].y < hand[14].y    // ring extended
+    && hand[20].y < hand[18].y;   // pinky extended
+}
+
+/** Fist: all 4 non-thumb fingers curled */
+function isFist(hand: NormalizedLandmark[]): boolean {
+  return hand[8].y > hand[6].y    // index curled
+    && hand[12].y > hand[10].y    // middle curled
+    && hand[16].y > hand[14].y    // ring curled
+    && hand[20].y > hand[18].y;   // pinky curled
+}
+
 export function useGestureInterpreter(): GestureInterpreterReturn {
   // Leva debug controls (D-22) — in production leva is a no-op so this is always safe to call
   const {
@@ -53,6 +69,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
   // Stable Zustand setter refs — won't trigger re-renders inside useCallback
   const setGestureActive = useAppStore((s) => s.setGestureActive);
   const setSelectedMeshName = useAppStore((s) => s.setSelectedMeshName);
+  const setExplodeActive = useAppStore((s) => s.setExplodeActive);
 
   // Internal state tracked via refs — no state updates needed (avoids re-renders on every frame)
   const gestureStateRef = useRef<GestureState>({ mode: 'idle', pinchOrigin: null });
@@ -110,6 +127,15 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
         );
       } else {
         pointingNDCRef.current = null;
+      }
+
+      // ── Spread/fist gesture: explode control gated on inspectMode (D-22) ─────────────────────
+      // Non-reactive read: getState() avoids stale closure without adding inspectMode to deps.
+      // (A1 pattern — same as Plan 02's getState() usage.)
+      const inspectMode = useAppStore.getState().inspectMode;
+      if (inspectMode) {
+        if (isSpread(hand0)) setExplodeActive(true);
+        if (isFist(hand0))   setExplodeActive(false);
       }
 
       // ── Two-hand gesture detection ────────────────────────────────────────────────
@@ -229,7 +255,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       return { type: 'idle' };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setGestureActive, setSelectedMeshName, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
+    [setGestureActive, setSelectedMeshName, setExplodeActive, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
   );
 
   // Suppress unused variable warnings — dwellStartRef/dwellMeshRef/DWELL_MS are available
