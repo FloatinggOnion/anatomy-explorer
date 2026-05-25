@@ -3,6 +3,7 @@
 
 import { useRef, useCallback } from 'react';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
+import { Vector2 } from 'three';
 import { useControls } from 'leva';
 import type { GestureCommand, GestureState } from '@/types/gestures';
 import { useAppStore } from '@/store/appState';
@@ -16,6 +17,18 @@ interface GestureInterpreterReturn {
   ) => GestureCommand;
   /** Ref-based isPinching — not reactive. Use the returned command type for reactive pinch UI. */
   isPinchingRef: React.MutableRefObject<boolean>;
+  /** NDC position of index fingertip when pointing gesture detected, null otherwise. */
+  pointingNDCRef: React.MutableRefObject<Vector2 | null>;
+}
+
+// ── Gesture helper functions (module-level) ─────────────────────────────────────────────────────
+
+/** Pointing: index extended, other 3 non-thumb fingers curled (D-06, Pattern 5 from RESEARCH.md) */
+function isPointing(hand: NormalizedLandmark[]): boolean {
+  return hand[8].y < hand[6].y    // index tip above PIP = extended
+    && hand[12].y > hand[10].y    // middle curled
+    && hand[16].y > hand[14].y    // ring curled
+    && hand[20].y > hand[18].y;   // pinky curled
 }
 
 export function useGestureInterpreter(): GestureInterpreterReturn {
@@ -39,6 +52,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
 
   // Stable Zustand setter refs — won't trigger re-renders inside useCallback
   const setGestureActive = useAppStore((s) => s.setGestureActive);
+  const setSelectedMeshName = useAppStore((s) => s.setSelectedMeshName);
 
   // Internal state tracked via refs — no state updates needed (avoids re-renders on every frame)
   const gestureStateRef = useRef<GestureState>({ mode: 'idle', pinchOrigin: null });
@@ -47,6 +61,13 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
   const prevMidpointRef = useRef<{ x: number; y: number } | null>(null);
   /** Debounce timer for gestureActive(false) — D-25 */
   const gestureOffTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /** NDC position of index finger tip when pointing detected (written here, read in PointerRaycaster) */
+  const pointingNDCRef = useRef<Vector2 | null>(null);
+  /** Dwell timer refs — used for dismiss logic when pointing at empty space */
+  const dwellStartRef = useRef<number | null>(null);
+  const dwellMeshRef = useRef<string | null>(null);
+  const DWELL_MS = 1000;
 
   const interpret = useCallback(
     (
@@ -61,6 +82,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
         gestureStateRef.current = { mode: 'idle', pinchOrigin: null };
         isPinchingRef.current = false;
         prevMidpointRef.current = null;
+        pointingNDCRef.current = null;
         if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
         gestureOffTimerRef.current = setTimeout(() => setGestureActive(false), 500); // D-25
         return { type: 'idle' };
@@ -78,6 +100,17 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       const indexTip0 = hand0[8];
       const pinchDist0 = Math.hypot(thumbTip0.x - indexTip0.x, thumbTip0.y - indexTip0.y);
       const isPinching0 = pinchDist0 < threshold;
+
+      // ── Pointing gesture: update pointingNDCRef (dwell handled in PointerRaycaster) ───
+      if (isPointing(hand0) && !isPinching0) {
+        // Convert landmark 8 from normalized [0,1] to Three.js NDC [-1,1]
+        pointingNDCRef.current = new Vector2(
+          hand0[8].x * 2 - 1,
+          -(hand0[8].y * 2 - 1),
+        );
+      } else {
+        pointingNDCRef.current = null;
+      }
 
       // ── Two-hand gesture detection ────────────────────────────────────────────────
       if (landmarks.length >= 2 && isPinching0) {
@@ -196,8 +229,14 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       return { type: 'idle' };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setGestureActive, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
+    [setGestureActive, setSelectedMeshName, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
   );
 
-  return { interpret, isPinchingRef };
+  // Suppress unused variable warnings — dwellStartRef/dwellMeshRef/DWELL_MS are available
+  // for future use (currently dwell logic lives in PointerRaycaster useFrame)
+  void dwellStartRef;
+  void dwellMeshRef;
+  void DWELL_MS;
+
+  return { interpret, isPinchingRef, pointingNDCRef };
 }
