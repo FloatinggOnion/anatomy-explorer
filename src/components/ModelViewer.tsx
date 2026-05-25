@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useLayoutEffect, useMemo } from 'react';
 import type { Group } from 'three';
 import { Box3, Vector3 } from 'three';
 import { useGLTF } from '@react-three/drei';
@@ -32,7 +32,9 @@ function GLBModel({
   // Use the forwarded ref from Canvas/SceneController if provided, else local ref
   const groupRef = (modelGroupRef ?? localGroupRef) as React.RefObject<Group>;
 
-  useEffect(() => {
+  // WR-06: useLayoutEffect fires after commit but before paint, guaranteeing
+  // groupRef is populated — avoids race condition with useEffect on fast machines
+  useLayoutEffect(() => {
     if (!groupRef.current) return;
 
     const box = new Box3().setFromObject(groupRef.current);
