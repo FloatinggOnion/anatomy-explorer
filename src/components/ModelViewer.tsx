@@ -110,6 +110,9 @@ function GLBModelWithErrorBoundary({
   const setModelLoadError = useAppStore((s) => s.setModelLoadError);
   const setModelUrl = useAppStore((s) => s.setModelUrl);
 
+  // WR-03: ModelErrorBoundary wraps Suspense so it catches both synchronous render
+  // errors AND Suspense-thrown errors from useGLTF. If a parent Suspense in Canvas.tsx
+  // catches first, this boundary's onError will not fire — by design.
   return (
     <ModelErrorBoundary
       onError={setModelLoadError}
