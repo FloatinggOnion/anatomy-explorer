@@ -748,22 +748,21 @@ function handleGestureResults(hasActiveGesture: boolean) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Non-integer z-index for landmark canvas**
-   - What we know: CSS spec allows non-integer z-index values in some contexts
-   - What's unclear: Consistent behavior across Chrome (browser), Safari (macOS Tauri), and Edge (Windows Tauri)
-   - Recommendation: Use integer z-indices (0, 1, 2, 10) and adjust the Phase 1 layer stack accordingly. The landmark canvas at z:1 with `pointerEvents: none`, R3F canvas at z:2. Update App.tsx in Wave 0.
+1. **Non-integer z-index for landmark canvas** (RESOLVED)
+   - Decision: Use integer z-index stack — video:0, landmark canvas:1 (pointerEvents:none), R3F canvas:2, UI:10.
+   - Rationale: Non-integer z-index values have inconsistent behavior in Chromium-based browsers and are unreliable in WebView2 (Tauri/Windows). Integer stack is safe across all targets.
+   - Impact: App.tsx R3F canvas wrapper shifts from zIndex:1 to zIndex:2. Plans 02-01 and 02-03 updated to reflect this.
 
-2. **MediaPipe GPU delegate in Tauri WebView2 (Windows)**
-   - What we know: GPU delegate uses WebGL; Tauri uses WebView2 which supports WebGL
-   - What's unclear: Whether WebView2's WebGL context is shared with or isolated from the R3F WebGL context, and whether GPU delegate conflicts
-   - Recommendation: Initialize with `delegate: 'GPU'`; fall back to `delegate: 'CPU'` if HandLandmarker creation throws. Log which delegate is active.
+2. **MediaPipe GPU delegate in Tauri WebView2 (Windows)** (RESOLVED)
+   - Decision: Initialize with delegate: 'GPU'; catch any HandLandmarker.createFromOptions exception and retry with delegate: 'CPU'. Log which delegate succeeded in DEV mode.
+   - Rationale: WebView2 supports WebGL and GPU delegate typically works; CPU fallback handles edge cases without impacting the core feature.
+   - Impact: useHandTracking.ts implements this try/catch pattern (Plan 02-03 Task 1).
 
-3. **Procedural skeleton auto-rotation stop condition**
-   - What we know: `useSkeletonAnimation` auto-rotates; OrbitControls also affects rotation
-   - What's unclear: Whether stopping auto-rotation requires clearing accumulated rotation state or just halting the useFrame update
-   - Recommendation: Add `isActive` flag to `useSkeletonAnimation`; set to false when `modelUrl !== null` OR first OrbitControls interaction detected.
+3. **Procedural skeleton auto-rotation stop condition** (RESOLVED)
+   - Decision: Add isActive flag to useSkeletonAnimation. Set isActive = false when modelUrl !== null (real model loaded) OR gestureActive becomes true. Halting the useFrame update is sufficient — no rotation state reset needed because OrbitControls and SceneController manage their own transform state independently.
+   - Impact: useSkeletonAnimation.ts modified in Plan 02-02 to read modelUrl and gestureActive from the Zustand store.
 
 ---
 

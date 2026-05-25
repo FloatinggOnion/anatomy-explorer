@@ -10,7 +10,7 @@ This roadmap delivers a web-based anatomy education app where users manipulate 3
 - Integer phases (1, 2, 3, 4): Planned milestone work
 - Decimal phases (e.g., 2.1): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: AR Canvas & Platform Foundation** - Webcam background, transparent 3D canvas overlay, Tauri desktop app, pre-permission screen
+- [x] **Phase 1: AR Canvas & Platform Foundation** - Webcam background, transparent 3D canvas overlay, Tauri desktop app, pre-permission screen
 - [ ] **Phase 2: 3D Models & Hand Tracking** - Anatomy model loading with mouse controls, hand detection, and pinch+drag gesture interaction
 - [ ] **Phase 3: Educational Features** - Model gallery, body part labels, layer toggles, and explode view
 - [ ] **Phase 4: Second Gesture Mode & Polish** - Open hand wave mode, gesture mode toggle, and demo readiness
@@ -24,10 +24,14 @@ This roadmap delivers a web-based anatomy education app where users manipulate 3
 **Requirements**: CAM-01, CAM-02, PLAT-01, PLAT-02, PLAT-03
 **Success Criteria** (what must be TRUE):
   1. User sees their live webcam feed as the full background of the app
-  2. User sees a 3D test object (cube or placeholder) floating over the webcam feed in the viewport area
+  2. User sees a 3D test object (skeleton model) floating over the webcam feed in the viewport area
   3. User sees a pre-permission screen explaining why webcam access is needed before the browser prompt appears
   4. App launches and runs in Chrome, Firefox, and as a Tauri desktop application from the same codebase
-**Plans**: TBD
+**Plans**: 4 plans
+  - [x] 01-01-PLAN.md — Project scaffold with Tauri + React 19 + Vite + TypeScript + R3F + Zustand
+  - [x] 01-02-PLAN.md — Webcam permission flow, pre-permission screen, checkerboard fallback
+  - [x] 01-03-PLAN.md — R3F canvas overlay, skeleton preview model, auto-rotation animation
+  - [x] 01-04-PLAN.md — Tauri desktop build, cross-browser testing (Chrome/Firefox), documentation
 **UI hint**: yes
 
 ### Phase 2: 3D Models & Hand Tracking
@@ -40,7 +44,11 @@ This roadmap delivers a web-based anatomy education app where users manipulate 3
   2. User can rotate, zoom, and pan the model using mouse and keyboard controls
   3. User's hand is visibly tracked in real-time via the webcam (debug overlay or gesture indicator confirms detection)
   4. User can pinch to grab, drag to rotate, and two-hand pinch to scale the model
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 02-01-PLAN.md — Install deps, extend Zustand store, gesture types, App.tsx layer stack, MediaPipe WASM offline assets
+  - [ ] 02-02-PLAN.md — OrbitControls, GLB model loading with auto-fit, BottomToolbar, spinner, error toast
+  - [ ] 02-03-PLAN.md — MediaPipe hand tracking hook, LandmarkCanvas, HandStatusIndicator
+  - [ ] 02-04-PLAN.md — Gesture interpreter (pinch+drag, two-hand scale/pan), SceneController, OrbitControls auto-switch
 
 ### Phase 3: Educational Features
 **Goal**: Users can browse anatomy models, inspect individual structures with labels, toggle body system layers, and explode models for internal inspection
@@ -74,7 +82,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. AR Canvas & Platform Foundation | 0/TBD | Not started | - |
-| 2. 3D Models & Hand Tracking | 0/TBD | Not started | - |
+| 1. AR Canvas & Platform Foundation | 4/4 | Planned | 2026-05-23 |
+| 2. 3D Models & Hand Tracking | 0/4 | Not started | - |
 | 3. Educational Features | 0/TBD | Not started | - |
 | 4. Second Gesture Mode & Polish | 0/TBD | Not started | - |
