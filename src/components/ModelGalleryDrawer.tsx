@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useAppStore } from '@/store/appState';
 
@@ -76,15 +76,9 @@ export function ModelGalleryDrawer() {
     e.target.value = '';
   };
 
-  // CR-01: Revoke object URL on unmount to prevent memory leak
-  useEffect(() => {
-    return () => {
-      if (prevObjectUrlRef.current) {
-        URL.revokeObjectURL(prevObjectUrlRef.current);
-        prevObjectUrlRef.current = null;
-      }
-    };
-  }, []);
+  // CR-02 fix: Do NOT revoke URL on unmount — the drawer unmounts on every close
+  // (drawerOpen=false → return null below), and the active model may still reference
+  // the object URL. handleFileChange already revokes the previous URL on replacement.
 
   // Render nothing when drawer is closed
   if (!drawerOpen) return null;

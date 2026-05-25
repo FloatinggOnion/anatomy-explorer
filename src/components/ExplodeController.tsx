@@ -48,9 +48,13 @@ export function ExplodeController({ modelGroupRef }: ExplodeControllerProps) {
   const groupDataRef = useRef<GroupExplodeData[]>([]);
   const explodeProgressRef = useRef<number>(0);
 
-  // ── Recompute group data when model or multiplier changes ──────────────────────────────────────
+  // Cached directions per child — computed once when layers change, reused when multiplier changes
+  const directionsRef = useRef<Map<string, { restPos: Vector3; direction: Vector3 }>>(new Map());
+
+  // ── Scan rest positions when model/layers change (NOT when multiplier changes) ────────────────
   useEffect(() => {
     const group = modelGroupRef.current;
+    directionsRef.current.clear();
     if (!group || availableLayers.length === 0) {
       groupDataRef.current = [];
       return;
@@ -58,28 +62,45 @@ export function ExplodeController({ modelGroupRef }: ExplodeControllerProps) {
 
     const modelBbox = new Box3().setFromObject(group);
     const modelCenter = modelBbox.getCenter(new Vector3());
+
+    group.traverse((child: Object3D) => {
+      if (!availableLayers.includes(child.name)) return;
+      const groupCenter = new Vector3();
+      new Box3().setFromObject(child).getCenter(groupCenter);
+      const direction = groupCenter.clone().sub(modelCenter).normalize();
+      // WR-04 fix: clone the CURRENT position as rest — this effect only fires
+      // when availableLayers changes (model load/switch), when position is at rest
+      directionsRef.current.set(child.name, {
+        restPos: child.position.clone(),
+        direction,
+      });
+    });
+  }, [availableLayers, modelGroupRef]);
+
+  // ── Recompute exploded positions when multiplier OR directions change ──────────────────────────
+  useEffect(() => {
+    const group = modelGroupRef.current;
+    if (!group || directionsRef.current.size === 0) {
+      groupDataRef.current = [];
+      return;
+    }
+
+    const modelBbox = new Box3().setFromObject(group);
     const boundingRadius = modelBbox.getSize(new Vector3()).length() / 2;
 
     const newData: GroupExplodeData[] = [];
     group.traverse((child: Object3D) => {
-      if (!availableLayers.includes(child.name)) return;
+      const cached = directionsRef.current.get(child.name);
+      if (!cached) return;
 
-      const groupCenter = new Vector3();
-      new Box3().setFromObject(child).getCenter(groupCenter);
-
-      // Direction from model center to group center (world space, but modelGroupRef is at origin)
-      const direction = groupCenter.clone().sub(modelCenter).normalize();
-
-      // Positions are in local space (child.position = local coords) — correct per Pitfall 5
-      const restPos = child.position.clone();
-      const explodedPos = restPos.clone().add(
-        direction.multiplyScalar(boundingRadius * EXPLODE_MULTIPLIER),
+      const explodedPos = cached.restPos.clone().add(
+        cached.direction.clone().multiplyScalar(boundingRadius * EXPLODE_MULTIPLIER),
       );
 
       newData.push({
         name: child.name,
         object: child,
-        restPosition: restPos,
+        restPosition: cached.restPos,
         explodedPosition: explodedPos,
       });
     });

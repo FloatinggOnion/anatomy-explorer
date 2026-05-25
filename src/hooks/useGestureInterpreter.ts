@@ -17,34 +17,41 @@ interface GestureInterpreterReturn {
   ) => GestureCommand;
   /** Ref-based isPinching — not reactive. Use the returned command type for reactive pinch UI. */
   isPinchingRef: React.MutableRefObject<boolean>;
-  /** NDC position of index fingertip when pointing gesture detected, null otherwise. */
+  /** NDC position of index fingertip when hover-selecting in inspect mode, null otherwise. */
   pointingNDCRef: React.MutableRefObject<Vector2 | null>;
 }
 
 // ── Gesture helper functions (module-level) ─────────────────────────────────────────────────────
 
-/** Pointing: index extended, other 3 non-thumb fingers curled (D-06, Pattern 5 from RESEARCH.md) */
-function isPointing(hand: NormalizedLandmark[]): boolean {
-  return hand[8].y < hand[6].y    // index tip above PIP = extended
-    && hand[12].y > hand[10].y    // middle curled
-    && hand[16].y > hand[14].y    // ring curled
-    && hand[20].y > hand[18].y;   // pinky curled
+/** Euclidean distance between two landmarks (works regardless of hand orientation) */
+function dist(a: NormalizedLandmark, b: NormalizedLandmark): number {
+  return Math.hypot(a.x - b.x, a.y - b.y, (a.z ?? 0) - (b.z ?? 0));
 }
 
-/** Spread: all 4 non-thumb fingers extended (D-21, Pattern 6 from RESEARCH.md) */
+/** Finger is extended: tip is further from MCP base than the PIP joint is */
+function fingerExtended(hand: NormalizedLandmark[], tip: number, pip: number, mcp: number): boolean {
+  return dist(hand[tip], hand[mcp]) > dist(hand[pip], hand[mcp]);
+}
+
+/** Finger is curled: tip is closer to MCP base than the PIP joint is */
+function fingerCurled(hand: NormalizedLandmark[], tip: number, pip: number, mcp: number): boolean {
+  return dist(hand[tip], hand[mcp]) < dist(hand[pip], hand[mcp]);
+}
+
+/** Spread: all 4 non-thumb fingers extended (orientation-independent) */
 function isSpread(hand: NormalizedLandmark[]): boolean {
-  return hand[8].y < hand[6].y    // index extended
-    && hand[12].y < hand[10].y    // middle extended
-    && hand[16].y < hand[14].y    // ring extended
-    && hand[20].y < hand[18].y;   // pinky extended
+  return fingerExtended(hand, 8, 6, 5)
+    && fingerExtended(hand, 12, 10, 9)
+    && fingerExtended(hand, 16, 14, 13)
+    && fingerExtended(hand, 20, 18, 17);
 }
 
-/** Fist: all 4 non-thumb fingers curled */
+/** Fist: all 4 non-thumb fingers curled (orientation-independent) */
 function isFist(hand: NormalizedLandmark[]): boolean {
-  return hand[8].y > hand[6].y    // index curled
-    && hand[12].y > hand[10].y    // middle curled
-    && hand[16].y > hand[14].y    // ring curled
-    && hand[20].y > hand[18].y;   // pinky curled
+  return fingerCurled(hand, 8, 6, 5)
+    && fingerCurled(hand, 12, 10, 9)
+    && fingerCurled(hand, 16, 14, 13)
+    && fingerCurled(hand, 20, 18, 17);
 }
 
 export function useGestureInterpreter(): GestureInterpreterReturn {
@@ -68,7 +75,6 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
 
   // Stable Zustand setter refs — won't trigger re-renders inside useCallback
   const setGestureActive = useAppStore((s) => s.setGestureActive);
-  const setSelectedMeshName = useAppStore((s) => s.setSelectedMeshName);
   const setExplodeActive = useAppStore((s) => s.setExplodeActive);
 
   // Internal state tracked via refs — no state updates needed (avoids re-renders on every frame)
@@ -79,12 +85,8 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
   /** Debounce timer for gestureActive(false) — D-25 */
   const gestureOffTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /** NDC position of index finger tip when pointing detected (written here, read in PointerRaycaster) */
+  /** NDC position of index finger tip in inspect mode (written here, read in PointerRaycaster) */
   const pointingNDCRef = useRef<Vector2 | null>(null);
-  /** Dwell timer refs — used for dismiss logic when pointing at empty space */
-  const dwellStartRef = useRef<number | null>(null);
-  const dwellMeshRef = useRef<string | null>(null);
-  const DWELL_MS = 1000;
 
   const interpret = useCallback(
     (
@@ -118,9 +120,13 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       const pinchDist0 = Math.hypot(thumbTip0.x - indexTip0.x, thumbTip0.y - indexTip0.y);
       const isPinching0 = pinchDist0 < threshold;
 
-      // ── Pointing gesture: update pointingNDCRef (dwell handled in PointerRaycaster) ───
-      if (isPointing(hand0) && !isPinching0) {
-        // Convert landmark 8 from normalized [0,1] to Three.js NDC [-1,1]
+      // ── Inspect mode: read once for hover-select + explode gestures ──────────────
+      const inspectMode = useAppStore.getState().inspectMode;
+
+      // ── Hover-select: in inspect mode, track index fingertip when not pinching ───
+      // No special hand pose required — just hover your hand near the model.
+      // Dwell selection (1s) is handled downstream by PointerRaycaster.
+      if (inspectMode && !isPinching0) {
         pointingNDCRef.current = new Vector2(
           hand0[8].x * 2 - 1,
           -(hand0[8].y * 2 - 1),
@@ -129,10 +135,7 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
         pointingNDCRef.current = null;
       }
 
-      // ── Spread/fist gesture: explode control gated on inspectMode (D-22) ─────────────────────
-      // Non-reactive read: getState() avoids stale closure without adding inspectMode to deps.
-      // (A1 pattern — same as Plan 02's getState() usage.)
-      const inspectMode = useAppStore.getState().inspectMode;
+      // ── Spread/fist gesture: explode control gated on inspectMode (D-22) ─────────
       if (inspectMode) {
         if (isSpread(hand0)) setExplodeActive(true);
         if (isFist(hand0))   setExplodeActive(false);
@@ -255,14 +258,8 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       return { type: 'idle' };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setGestureActive, setSelectedMeshName, setExplodeActive, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
+    [setGestureActive, setExplodeActive, PINCH_ENTER, PINCH_EXIT, DEAD_ZONE_PX, rotationSensitivity],
   );
-
-  // Suppress unused variable warnings — dwellStartRef/dwellMeshRef/DWELL_MS are available
-  // for future use (currently dwell logic lives in PointerRaycaster useFrame)
-  void dwellStartRef;
-  void dwellMeshRef;
-  void DWELL_MS;
 
   return { interpret, isPinchingRef, pointingNDCRef };
 }

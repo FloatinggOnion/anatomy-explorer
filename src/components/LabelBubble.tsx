@@ -28,14 +28,17 @@ export interface LabelBubbleProps {
 
 export function LabelBubble({ modelGroupRef }: LabelBubbleProps) {
   const selectedMeshName = useAppStore((s) => s.selectedMeshName);
-  const meshWorldPosRef = useRef(new Vector3());
+  const groupRef = useRef<THREE.Group>(null);
 
+  // CR-01 fix: set the group's world position each frame so <Html> (a child) tracks it
   useFrame(() => {
-    const group = modelGroupRef.current;
-    if (!group || !selectedMeshName) return;
-    const mesh = findMeshByName(group, selectedMeshName);
+    const model = modelGroupRef.current;
+    if (!model || !selectedMeshName || !groupRef.current) return;
+    const mesh = findMeshByName(model, selectedMeshName);
     if (mesh) {
-      mesh.getWorldPosition(meshWorldPosRef.current);
+      const pos = new Vector3();
+      mesh.getWorldPosition(pos);
+      groupRef.current.position.copy(pos);
     }
   });
 
@@ -47,9 +50,9 @@ export function LabelBubble({ modelGroupRef }: LabelBubbleProps) {
   };
 
   return (
+    <group ref={groupRef}>
     <Html
       center
-      position={meshWorldPosRef.current}
       zIndexRange={[9, 0]}
       style={{ pointerEvents: 'none' }}
     >
@@ -109,5 +112,6 @@ export function LabelBubble({ modelGroupRef }: LabelBubbleProps) {
         </div>
       </div>
     </Html>
+    </group>
   );
 }

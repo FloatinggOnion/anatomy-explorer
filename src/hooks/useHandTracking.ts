@@ -24,9 +24,9 @@ async function createLandmarker(
     },
     runningMode: 'VIDEO',
     numHands: 2, // D-14: support two-hand gestures
-    minHandDetectionConfidence: 0.7,
-    minHandPresenceConfidence: 0.7,
-    minTrackingConfidence: 0.6,
+    minHandDetectionConfidence: 0.5,
+    minHandPresenceConfidence: 0.5,
+    minTrackingConfidence: 0.4,
   });
 }
 
