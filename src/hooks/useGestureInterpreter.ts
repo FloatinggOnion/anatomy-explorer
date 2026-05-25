@@ -38,6 +38,14 @@ function fingerCurled(hand: NormalizedLandmark[], tip: number, pip: number, mcp:
   return dist(hand[tip], hand[mcp]) < dist(hand[pip], hand[mcp]);
 }
 
+/** Pointing: index extended, other 3 non-thumb fingers curled (orientation-independent) */
+function isPointing(hand: NormalizedLandmark[]): boolean {
+  return fingerExtended(hand, 8, 6, 5)    // index extended
+    && fingerCurled(hand, 12, 10, 9)       // middle curled
+    && fingerCurled(hand, 16, 14, 13)      // ring curled
+    && fingerCurled(hand, 20, 18, 17);     // pinky curled
+}
+
 /** Spread: all 4 non-thumb fingers extended (orientation-independent) */
 function isSpread(hand: NormalizedLandmark[]): boolean {
   return fingerExtended(hand, 8, 6, 5)
@@ -87,6 +95,9 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
 
   /** NDC position of index finger tip in inspect mode (written here, read in PointerRaycaster) */
   const pointingNDCRef = useRef<Vector2 | null>(null);
+  /** Smoothed NDC for jitter reduction — exponential moving average */
+  const smoothNDCRef = useRef<{ x: number; y: number } | null>(null);
+  const NDC_SMOOTH = 0.35; // blend factor: 0 = fully smoothed, 1 = raw (0.35 = responsive but stable)
 
   const interpret = useCallback(
     (
@@ -120,19 +131,29 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
       const pinchDist0 = Math.hypot(thumbTip0.x - indexTip0.x, thumbTip0.y - indexTip0.y);
       const isPinching0 = pinchDist0 < threshold;
 
-      // ── Inspect mode: read once for hover-select + explode gestures ──────────────
+      // ── Inspect mode: read once for explode gestures ─────────────────────────────
       const inspectMode = useAppStore.getState().inspectMode;
 
-      // ── Hover-select: in inspect mode, track index fingertip when not pinching ───
-      // No special hand pose required — just hover your hand near the model.
-      // Dwell selection (1s) is handled downstream by PointerRaycaster.
-      if (inspectMode && !isPinching0) {
-        pointingNDCRef.current = new Vector2(
-          hand0[8].x * 2 - 1,
-          -(hand0[8].y * 2 - 1),
-        );
+      // ── Selection raycaster: always active via two methods ───────────────────────
+      // 1. Pointing gesture (index up, others curled) — works in any mode
+      // 2. Open-hand hover — works when inspect mode is on
+      // Smoothed via EMA to reduce jitter that resets the dwell timer downstream.
+      const shouldRaycast = !isPinching0 && (isPointing(hand0) || inspectMode);
+      if (shouldRaycast) {
+        const rawX = -(hand0[8].x * 2 - 1);  // Mirror X to match CSS scaleX(-1) selfie view
+        const rawY = -(hand0[8].y * 2 - 1);
+
+        if (smoothNDCRef.current) {
+          smoothNDCRef.current.x += (rawX - smoothNDCRef.current.x) * NDC_SMOOTH;
+          smoothNDCRef.current.y += (rawY - smoothNDCRef.current.y) * NDC_SMOOTH;
+        } else {
+          smoothNDCRef.current = { x: rawX, y: rawY };
+        }
+
+        pointingNDCRef.current = new Vector2(smoothNDCRef.current.x, smoothNDCRef.current.y);
       } else {
         pointingNDCRef.current = null;
+        smoothNDCRef.current = null;
       }
 
       // ── Spread/fist gesture: explode control gated on inspectMode (D-22) ─────────

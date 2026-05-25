@@ -56,8 +56,8 @@ export function SceneController({ gestureCommandRef, modelGroupRef }: SceneContr
 
     // ── Momentum deceleration ───────────────────────────────────────────────────
     if (isDeceleratingRef.current && (!cmd || cmd.type !== 'rotate')) {
-      velocityRef.current.x *= 0.92;
-      velocityRef.current.y *= 0.92;
+      velocityRef.current.x *= 0.75;
+      velocityRef.current.y *= 0.75;
       const speed = Math.hypot(velocityRef.current.x, velocityRef.current.y);
       if (speed < 0.0001) {
         isDeceleratingRef.current = false;
