@@ -75,7 +75,11 @@ This roadmap delivers a web-based anatomy education app where users manipulate 3
   1. User can swipe to rotate, spread fingers to zoom in, and close fist to zoom out (open hand wave mode)
   2. User can toggle between pinch+drag and open hand wave gesture modes via a visible UI control
   3. Both gesture modes work reliably without conflicting with each other
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 04-01-PLAN.md — Store extension (gestureMode field), gesture type contracts (wave-rotate, wave-zoom)
+  - [ ] 04-02-PLAN.md — BottomToolbar wave mode toggle button, Inspect/Wave mutual exclusivity in App.tsx
+  - [ ] 04-03-PLAN.md — Wave mode gesture logic in useGestureInterpreter, wave-zoom handler in SceneController
+  - [ ] 04-04-PLAN.md — HandStatusIndicator mode badge, UX polish, human verification checkpoint
 **UI hint**: yes
 
 ## Progress
@@ -88,4 +92,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. AR Canvas & Platform Foundation | 4/4 | Planned | 2026-05-23 |
 | 2. 3D Models & Hand Tracking | 0/4 | Not started | - |
 | 3. Educational Features | 0/3 | Not started | - |
-| 4. Second Gesture Mode & Polish | 0/TBD | Not started | - |
+| 4. Second Gesture Mode & Polish | 0/4 | Not started | - |
