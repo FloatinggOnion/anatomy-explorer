@@ -53,7 +53,9 @@ export function SceneController({ gestureCommandRef, modelGroupRef }: SceneContr
     const cmd = gestureCommandRef.current;
 
     // ── Momentum deceleration (T-02-11: loop exits cleanly) ──────────────────────
-    if (isDeceleratingRef.current) {
+    // WR-04: Only apply momentum when no active rotate gesture — prevents double-rotation
+    // on the first frame of a new pinch after momentum was active
+    if (isDeceleratingRef.current && (!cmd || cmd.type !== 'rotate')) {
       velocityRef.current.x *= 0.92;
       velocityRef.current.y *= 0.92;
       const speed = Math.hypot(velocityRef.current.x, velocityRef.current.y);
