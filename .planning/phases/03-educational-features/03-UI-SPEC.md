@@ -36,7 +36,6 @@ Declared values (multiples of 4):
 |-------|-------|-------|
 | xs | 4px | Icon gaps, dot indicator gaps, chip inner padding top/bottom |
 | sm | 8px | Chip horizontal padding, label bubble padding, toolbar button gaps |
-| md | 12px | Toolbar button horizontal padding, drawer item padding horizontal |
 | lg | 16px | Toolbar height padding, drawer padding, chip row padding |
 | xl | 24px | Drawer header padding, section vertical separation |
 | 2xl | 48px | Drawer width is NOT in this scale — see Surfaces section |
@@ -45,6 +44,7 @@ Declared values (multiples of 4):
 Exceptions:
 - Toolbar minimum height: 44px (touch target floor, carried from Phase 2)
 - Toolbar button height: 36px (carried from Phase 2)
+- md: 12px — used for drawer item padding and toolbar button horizontal padding — midpoint between 8px and 16px required to match existing BottomToolbar.tsx button padding pattern carried from Phase 2
 - Drawer width: 280px on desktop / 100vw on viewport < 400px
 - Label bubble max-width: 240px
 
@@ -124,7 +124,7 @@ Border colors:
 
 **Model list items:**
 - Layout: row, gap 12px, align items center
-- Padding: 12px 16px
+- Padding: 12px 16px (12px is the spacing exception — see Spacing Scale Exceptions)
 - Thumbnail: 56px x 56px, borderRadius 6px, objectFit cover; for user-loaded files show unicode fallback "[ ]" (box character) at 28px in a 56x56 dark background
 - Model name: 14px / 400 / #ffffff
 - Active item: left border 3px solid #2563EB, background rgba(37, 99, 235, 0.15)
@@ -147,7 +147,7 @@ Border colors:
 **Background:** rgba(17, 24, 39, 0.85) with `backdropFilter: blur(6px)`
 **Border:** 1px solid rgba(255, 255, 255, 0.15)
 **Border radius:** 8px
-**Padding:** 12px
+**Padding:** 12px (spacing exception — see Spacing Scale Exceptions)
 
 **Internal layout:**
 - Anatomy name: 16px / 600 / #ffffff — top line
@@ -200,7 +200,7 @@ Existing toolbar: rgba(17, 24, 39, 0.7) bg, blur(4px), padding 0 16px, minHeight
 8. Divider
 9. "Inspect" toggle — ghost style when OFF; accent fill (#2563EB) when ON
 
-**All buttons:** height 36px, border-radius 6px, fontSize 12px, fontWeight 400
+**All buttons:** height 36px, border-radius 6px, fontSize 12px, fontWeight 400, horizontal padding 12px (spacing exception — see Spacing Scale Exceptions)
 
 **Ghost button style (inactive):**
 - background: transparent
