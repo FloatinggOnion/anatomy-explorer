@@ -138,7 +138,9 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
             const panMagnitude = Math.hypot(panDelta.x, panDelta.y);
             const scaleMagnitude = Math.abs(scaleFactor - 1.0);
 
-            if (panMagnitude > DEAD_ZONE_PX && panMagnitude > scaleMagnitude * 200) {
+            // CR-03: Only emit pan when scale is essentially stationary — prevents
+            // misclassifying scale gestures as pan when midpoint drifts slightly
+            if (panMagnitude > DEAD_ZONE_PX && scaleMagnitude < 0.01) {
               prevMidpointRef.current = midpoint;
               return { type: 'pan', delta: panDelta };
             }
