@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useEffect } from 'react';
+import React, { Suspense, useRef, useEffect, useCallback } from 'react';
 import { Canvas as R3FCanvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import type { Group } from 'three';
@@ -9,6 +9,7 @@ import { ModelViewer } from './ModelViewer';
 import { SceneController } from './SceneController';
 import { PointerRaycaster } from './PointerRaycaster';
 import { LabelBubble } from './LabelBubble';
+import { ExplodeController } from './ExplodeController';
 
 interface CanvasProps {
   gestureCommandRef?: React.MutableRefObject<GestureCommand | null>;
@@ -30,6 +31,8 @@ export function Canvas({
 }: CanvasProps) {
   const controlsRef = useRef(null);
   const gestureActive = useAppStore((s) => s.gestureActive);
+  const setAvailableLayers = useAppStore((s) => s.setAvailableLayers);
+  const setVisibleLayers = useAppStore((s) => s.setVisibleLayers);
 
   // Internal fallback ref — used when Canvas is rendered standalone (no App wiring)
   const internalGestureCommandRef = useRef<GestureCommand | null>(null);
@@ -40,8 +43,14 @@ export function Canvas({
   const pointingNDCRef = externalPointingNDCRef ?? internalPointingNDCRef;
 
   // modelGroupRef is created here and forwarded to both ModelViewer (writes)
-  // and SceneController/PointerRaycaster/LabelBubble (reads)
+  // and SceneController/PointerRaycaster/LabelBubble/ExplodeController (reads)
   const modelGroupRef = useRef<Group | null>(null);
+
+  // onGroupsScanned: called by ModelViewer after model mounts; sets available layers (D-13)
+  const onGroupsScanned = useCallback((names: string[]) => {
+    setAvailableLayers(names);
+    setVisibleLayers(new Set(names)); // D-13: all layers visible on load
+  }, [setAvailableLayers, setVisibleLayers]);
 
   // Pitfall A mitigation (T-02-12): imperative fallback ensures OrbitControls disables
   // even if the enabled prop change does not propagate within the same render cycle.
@@ -85,8 +94,11 @@ export function Canvas({
         modelGroupRef={modelGroupRef}
       />
 
+      {/* ExplodeController: animates explode/rest lerp; controls layer visibility */}
+      <ExplodeController modelGroupRef={modelGroupRef} />
+
       <Suspense fallback={<FallbackPlaceholder />}>
-        <ModelViewer controlsRef={controlsRef} modelGroupRef={modelGroupRef} />
+        <ModelViewer controlsRef={controlsRef} modelGroupRef={modelGroupRef} onGroupsScanned={onGroupsScanned} />
         {/* LabelBubble: anchored drei Html label for selected anatomy part */}
         <LabelBubble modelGroupRef={modelGroupRef} />
       </Suspense>
