@@ -47,6 +47,10 @@ interface AppState {
 
   selectedMeshName: string | null;
   setSelectedMeshName: (name: string | null) => void;
+
+  // Phase 4 fields
+  gestureMode: 'pinch' | 'wave';
+  setGestureMode: (mode: 'pinch' | 'wave') => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -94,4 +98,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   selectedMeshName: null,
   setSelectedMeshName: (name) => set({ selectedMeshName: name }),
+
+  // Phase 4
+  gestureMode: 'pinch',
+  setGestureMode: (mode) => set({ gestureMode: mode }),
 }));
