@@ -5,7 +5,6 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "opener:default",
-    "webapi:allow-media-devices"
+    "opener:default"
   ]
 }
