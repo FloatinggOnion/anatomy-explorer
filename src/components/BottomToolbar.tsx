@@ -217,7 +217,7 @@ export function BottomToolbar() {
                 transition: 'background 200ms, border 200ms',
               }}
             >
-              {gestureMode === 'wave' ? 'Pinch Mode' : 'Wave Mode'}
+              {gestureMode === 'wave' ? 'Wave Mode' : 'Pinch Mode'}
             </button>
           </>
         )}

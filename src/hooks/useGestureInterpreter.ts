@@ -168,30 +168,44 @@ export function useGestureInterpreter(): GestureInterpreterReturn {
           return { type: 'idle' };
         }
 
+        // Helper: compute average spread distance between adjacent fingertips
+        const computeSpreadDist = (hand: NormalizedLandmark[]): number => {
+          return (
+            dist(hand[8], hand[12]) +
+            dist(hand[12], hand[16]) +
+            dist(hand[16], hand[20])
+          ) / 3;
+        };
+        const MIN_SPREAD_THRESHOLD = 0.04; // Minimum normalized distance to trigger intentional spread
+
         // D-11: Two-hand spread zoom
         if (landmarks.length >= 2 && isSpread(hand0) && isSpread(landmarks[1])) {
-          const distance = dist(hand0[8], landmarks[1][8]);
-          const speed = Math.min(distance * 2, 1.0);
-          gestureStateRef.current = { mode: 'wave-zoom', pinchOrigin: null };
-          isPinchingRef.current = false;
-          if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
-          setGestureActive(true);
-          return { type: 'wave-zoom', direction: 'in', speed };
+          const spreadDist0 = computeSpreadDist(hand0);
+          const spreadDist1 = computeSpreadDist(landmarks[1]);
+          // Only trigger two-hand zoom if both hands are intentionally spread apart
+          if (spreadDist0 > MIN_SPREAD_THRESHOLD && spreadDist1 > MIN_SPREAD_THRESHOLD) {
+            const distance = dist(hand0[8], landmarks[1][8]);
+            const speed = Math.min(distance * 2, 1.0);
+            gestureStateRef.current = { mode: 'wave-zoom', pinchOrigin: null };
+            isPinchingRef.current = false;
+            if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
+            setGestureActive(true);
+            return { type: 'wave-zoom', direction: 'in', speed };
+          }
         }
 
         // D-09: Single-hand spread zoom in
         if (isSpread(hand0)) {
-          const avgDist = (
-            dist(hand0[8], hand0[12]) +
-            dist(hand0[12], hand0[16]) +
-            dist(hand0[16], hand0[20])
-          ) / 3;
-          const speed = Math.min(avgDist * 4, 1.0);
-          gestureStateRef.current = { mode: 'wave-zoom', pinchOrigin: null };
-          isPinchingRef.current = false;
-          if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
-          setGestureActive(true);
-          return { type: 'wave-zoom', direction: 'in', speed };
+          const avgDist = computeSpreadDist(hand0);
+          // Only trigger zoom if fingers are intentionally spread apart
+          if (avgDist > MIN_SPREAD_THRESHOLD) {
+            const speed = Math.min(avgDist * 4, 1.0);
+            gestureStateRef.current = { mode: 'wave-zoom', pinchOrigin: null };
+            isPinchingRef.current = false;
+            if (gestureOffTimerRef.current) clearTimeout(gestureOffTimerRef.current);
+            setGestureActive(true);
+            return { type: 'wave-zoom', direction: 'in', speed };
+          }
         }
 
         // D-10: Fist zoom out
