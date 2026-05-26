@@ -33,8 +33,11 @@ export function WebcamProvider({ children }: WebcamProviderProps) {
         />
       )}
 
-      {children}
+      {/* Only render children (which initialize Leva controls) when permissions are granted or pending.
+          This hides the Leva settings box until the user grants camera access. */}
+      {(permissionState === 'granted' || permissionState === 'pending') && children}
 
+      {/* Show permission screen on top when permissions not yet granted */}
       {permissionState !== 'granted' &&
         createPortal(
           <PrePermissionScreen onStartCamera={startCamera} />,
